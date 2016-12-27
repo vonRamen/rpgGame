@@ -1,0 +1,6 @@
+id=0
+sprite_id=0
+name=knife
+description=this is a spoon
+basePrice=100
+stackSize=30

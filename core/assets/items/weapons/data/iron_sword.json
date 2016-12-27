@@ -1,0 +1,1 @@
+{name:"Iron Sword",description:"A standard iron sword used by the guards.",requiredCombatLevel:1,sprite:"iron_sword",speed:300,damage:10,knockback:200}
