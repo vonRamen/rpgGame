@@ -9,11 +9,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.esotericsoftware.kryonet.Client;
 import com.mygdx.game.EntitySimpleType;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.Player;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,19 +31,34 @@ public class GUIStage extends Stage {
     private Player player;
     private Skin skin;
     private GUIInventory inventory;
+    private OrthographicCamera camera;
     private boolean isDrawing;
     private InputMultiplexer multiPlexer;
+    private GameWorld world;
     private Client client;
+    private Label fpsLabel;
+    private Table debugLayout;
+    private WorldClickHandler worldClickHandler;
 
-    public GUIStage(Player player, Skin skin, Client client) {
+    public GUIStage(GameWorld world, OrthographicCamera camera, Player player, Skin skin, Client client) {
         super();
         this.client = client;
+        this.world = world;
         multiPlexer = new InputMultiplexer();
         multiPlexer.addProcessor(this);
         isDrawing = true;
         this.skin = skin;
         this.player = player;
+        this.worldClickHandler = new WorldClickHandler(player, camera, world);
         Gdx.input.setInputProcessor(multiPlexer);
+
+        //this.addActor(new MainGUI(skin));
+    }
+
+    public void act() {
+        super.act();
+        if (isDrawing) {
+        }
     }
 
     public void toggleInventory() {
@@ -95,14 +114,15 @@ public class GUIStage extends Stage {
             } catch (CloneNotSupportedException ex) {
                 System.out.println(ex);
             }
-                        
-       }
+
+        }
         return true;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         super.touchUp(screenX, screenY, pointer, button);
+        worldClickHandler.click(screenX, screenY);
         return true;
     }
 

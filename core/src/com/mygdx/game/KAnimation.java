@@ -26,19 +26,6 @@ public class KAnimation extends Animation {
     private String name;
     private static FileHandle dirHandle;
 
-    public enum Direction {
-        UP(3), DOWN(0), LEFT(1), RIGHT(2);
-        private final int index;
-
-        Direction(int i) {
-            index = i;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-    }
-
     public KAnimation(float frameDuration, TextureRegion... keyFrames) {
         super(frameDuration, keyFrames);
         directionalAnimation = new Animation[4];

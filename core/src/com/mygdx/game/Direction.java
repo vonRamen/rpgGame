@@ -5,16 +5,20 @@
  */
 package com.mygdx.game;
 
-import Persistence.Action;
-import java.util.ArrayList;
-
 /**
  *
  * @author kristian
  */
-public interface Drawable {
-    public void draw();
-    public float getY();
-    public float getX();
-    public ArrayList<Action> getActions();
+public enum Direction {
+    DOWN(0), LEFT(1), RIGHT(2), UP(3);
+    
+    private final int value;
+    
+    Direction(int value) {
+        this.value = value;
+    }
+    
+    public int getValue() {
+        return value;
+    }
 }

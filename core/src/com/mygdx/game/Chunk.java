@@ -5,11 +5,13 @@
  */
 package com.mygdx.game;
 
+import Persistence.GameObject;
 import Persistence.Tile;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Json;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.UUID;
 
 /**
@@ -117,6 +119,20 @@ public class Chunk implements Runnable {
         }
 
     }
+    
+    public static void makeSampleTest() { //generates chunk with all of the objects and items
+        
+        Chunk chunk = new Chunk(0, 0, null);
+        for(int i = 0; i < GameObject.getGameObjects().size(); i++) {
+            chunk.worldObjects.add(new WorldObject(i, 32+i*3*32, 92));
+        }
+        
+        Json json = new Json();
+        String str = json.toJson(chunk);
+
+        FileHandle fileHandler = new FileHandle("worlds/name/chunks/tiles"+chunk.getX()+" "+chunk.getY()+".json");
+        fileHandler.writeString(str, false);
+    }
 
     public void fillTile(int tile_id) {
         for (int iy = 0; iy < 32; iy++) {
@@ -164,5 +180,20 @@ public class Chunk implements Runnable {
      */
     public ArrayList<WorldObject> getWorldObjects() {
         return worldObjects;
+    }
+
+    void updateWorldObject(WorldObject worldObject) {
+        Iterator iterator = worldObjects.iterator();
+        while (iterator.hasNext()) {
+            Drawable temp = (Drawable) iterator.next();
+            if (temp instanceof WorldObject) {
+                WorldObject oldObject = (WorldObject) temp;
+                if (oldObject.uId == null ? worldObject.uId == null : oldObject.uId.equals(worldObject.uId)) {
+                    iterator.remove();
+                    worldObjects.add(worldObject);
+                    break;
+                }
+            }
+        }
     }
 }

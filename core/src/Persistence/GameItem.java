@@ -17,6 +17,8 @@ import com.mygdx.game.KJson;
 import java.io.FileFilter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
@@ -42,7 +44,7 @@ public class GameItem {
         stackSize = 30;
     }
     
-    public static void load() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void load() {
         KLoader<GameItem> loader = new KLoader();
         gameItems = new ArrayList();
 //        GameItem g = new GameItem();
@@ -57,6 +59,7 @@ public class GameItem {
         itemTextures = new ArrayList();
  
         Texture texture = new Texture(path+"items.png");
+        System.out.println("Loading Items Texture..");
         int xx = (int) (texture.getWidth() / 32);
         int yy = (int) (texture.getHeight() / 32);
         
@@ -67,15 +70,14 @@ public class GameItem {
             }
         }
         //Load json with data.
-        FileHandle dirHandle = Gdx.files.internal(path+"data");
+        FileHandle dirHandle = Gdx.files.internal(path+"data/");
+        System.out.println("Files in data: "+dirHandle.list().length);
+        Json json = new Json();
         int count = 0;
+        System.out.println("File location: "+dirHandle.path());
         for(FileHandle file : dirHandle.list()) {
-            GameItem gameItem = new GameItem();
-            gameItem = loader.load(GameItem.class, file.path());
-            gameItems.add(gameItem);
-            System.out.println("Item loaded: "+gameItem.name);
-            loader.save(gameItem, path+"data/knife copy.item");
-            count++;
+            GameItem object = json.fromJson(GameItem.class, file);
+            gameItems.add(object);
         }
         System.out.println("Items loaded: "+count);
     }

@@ -5,6 +5,7 @@
  */
 package com.mygdx.game;
 
+import Persistence.Action;
 import Persistence.Weapon;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -20,10 +21,10 @@ public class Human extends Entity {
 
     protected ArrayList<Entity> enemiesHit; //A list of the current enemies hit. Won't hit the same enemy twice.
     protected Inventory inventory;
-    protected Skill skillCombat;
-    protected Skill skillWoodcutting;
-    protected Skill skillMining;
-    protected Skill farmingSkill;
+    private Skill skillCombat;
+    private Skill skillWoodcutting;
+    private Skill skillMining;
+    private Skill skillFarming;
     protected Sprite weaponSpriteReference;
     protected int middleX = 16;
     protected int middleY = 16;
@@ -47,6 +48,7 @@ public class Human extends Entity {
         skillCombat = new Skill("Combat", "This is the skill, where you specialize in melee combat.");
         skillMining = new Skill("Mining", "This is the skill, where you mine ores.");
         skillWoodcutting = new Skill("Woodcutting", "In this skill, you chop wood.");
+        skillFarming = new Skill("Farming", "In this skill, you farm stuff");
     }
 
     @Override
@@ -168,14 +170,14 @@ public class Human extends Entity {
     @Override
     public void draw() {
         //draw weapon behind human if attacking up
-        if (isAttacking && animationDirection == KAnimation.Direction.UP.getIndex()) {
+        if (isAttacking && animationDirection == Direction.UP.getValue()) {
             Game.batch.draw(weaponSpriteReference, weaponSpriteReference.getX(), weaponSpriteReference.getY(), weaponSpriteReference.getOriginX(), weaponSpriteReference.getOriginY(), weaponSpriteReference.getWidth(), weaponSpriteReference.getHeight(), 1, 1, weaponSpriteReference.getRotation());
         }
 
         super.draw();
 
         //draw weapon in front of human if attacking down
-        if (isAttacking && animationDirection != KAnimation.Direction.UP.getIndex()) {
+        if (isAttacking && animationDirection != Direction.UP.getValue()) {
             Game.batch.draw(weaponSpriteReference, weaponSpriteReference.getX(), weaponSpriteReference.getY(), weaponSpriteReference.getOriginX(), weaponSpriteReference.getOriginY(), weaponSpriteReference.getWidth(), weaponSpriteReference.getHeight(), 1, 1, weaponSpriteReference.getRotation());
         }
     }
@@ -230,6 +232,39 @@ public class Human extends Entity {
             default:
                 break;
         }
+    }
+
+    /**
+     * @return the skillCombat
+     */
+    public Skill getSkillCombat() {
+        return skillCombat;
+    }
+
+    /**
+     * @return the skillWoodcutting
+     */
+    public Skill getSkillWoodcutting() {
+        return skillWoodcutting;
+    }
+
+    /**
+     * @return the skillMining
+     */
+    public Skill getSkillMining() {
+        return skillMining;
+    }
+
+    /**
+     * @return the farmingSkill
+     */
+    public Skill getFarmingSkill() {
+        return skillFarming;
+    }
+
+    @Override
+    public ArrayList<Action> getActions() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

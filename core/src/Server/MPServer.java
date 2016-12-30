@@ -3,11 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mygdx.game;
+package Server;
 
 import Persistence.GameObject;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
+import com.mygdx.game.GameWorld;
+import com.mygdx.game.KKryo;
+import com.mygdx.game.Player;
+import com.mygdx.game.ServerListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ public class MPServer {
     private GameWorld world;
     private String extraPath;
     private String worldName;
+    private WorldSettings worldSettings;
     
     public static void main(String[] args) {
         MPServer mpServer = new MPServer(7777);
@@ -35,8 +40,8 @@ public class MPServer {
     public MPServer(int port) {
         worldName = "name";
         extraPath = "assets/worlds/"+worldName+"/";
-        world = new GameWorld(true, extraPath);
-        Player.generate(extraPath+"players/", "Mathias", "ubv59mve");
+        world = new GameWorld(true, extraPath, null);
+        Player.generate(extraPath+"players/", "Kristian", "ubv59mve");
         this.port = port;
         server = new Server();
         server.addListener(new ServerListener(server, world, extraPath));

@@ -25,6 +25,10 @@ task dist(type: Jar) {
     }
 }
 
+task wrapper(type: Wrapper) {
+   gradleVersion = '2.0' //version required
+}
+
 dist.dependsOn classes
 
 eclipse {

@@ -5,6 +5,8 @@
  */
 package com.mygdx.game;
 
+import Server.ExtraCommand;
+import Server.WorldSettings;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -51,5 +53,7 @@ public class KKryo {
         kryo.register(Texture.class);
         kryo.register(FileTextureData.class);
         kryo.register(GameWorld.class);
+        kryo.register(ExtraCommand.class);
+        kryo.register(WorldSettings.class);
     }
 }

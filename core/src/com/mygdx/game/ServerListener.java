@@ -5,6 +5,8 @@
  */
 package com.mygdx.game;
 
+import Server.ExtraCommand;
+import Server.WorldSettings;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -26,6 +28,7 @@ public class ServerListener extends Listener {
     private ArrayList<Connection> connections;
     private HashMap<Connection, Player> playerToConnection;
     private GameWorld world;
+    private WorldSettings worldSettings;
     private String fullPath;
     private Server server;
     private int fieldOfView = 2; //default 1
@@ -37,6 +40,7 @@ public class ServerListener extends Listener {
         connections = new ArrayList();
         playerToConnection = new HashMap();
         world = gameWorld;
+        worldSettings = new WorldSettings("Test", world.getSizeX(), world.getSizeY());
     }
 
     @Override
@@ -52,6 +56,7 @@ public class ServerListener extends Listener {
 
             if (player != null) {
                 connection.sendTCP(player);
+                connection.sendTCP(worldSettings);
                 playerToConnection.put(connection, player);
                 sendWorldData(connection, player);
             }
@@ -80,6 +85,15 @@ public class ServerListener extends Listener {
                 playerToConnection.put(connection, (Player) object);
             }
             server.sendToAllExceptTCP(connection.getID(), object);
+        }
+        if (object instanceof WorldObject) { //If the object has been modified
+            WorldObject worldObject = (WorldObject) object;
+            world.updateWorldObject(worldObject);
+            
+            //--------------Add update to server!!!
+            
+            
+            server.sendToAllExceptTCP(connection.getID(), object);  
         }
     }
 
@@ -131,6 +145,8 @@ public class ServerListener extends Listener {
             }
         }
 
+        player.extraCommand = ExtraCommand.LOGOUT;
+        server.sendToAllTCP(player);
         playerToConnection.remove(connection);
         connections.remove(connection);
         //Set access for all the other clients
@@ -139,7 +155,6 @@ public class ServerListener extends Listener {
                 sendWorldData(connections.get(0), playerToConnection.get(connections.get(0)));
             }
         }
-
     }
 
     public void sendAllPlayerInfo() {

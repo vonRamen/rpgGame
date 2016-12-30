@@ -11,6 +11,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -39,8 +40,10 @@ public class PlayerController { //This class handles all the controls from the p
     private int lastX;
     private int lastY; //makes sure a new movement has been entered.
     private Skin skin;
+    private OrthographicCamera camera;
 
-    public PlayerController(Client client, Player player) {
+    public PlayerController(Client client, Player player, OrthographicCamera camera) {
+        this.camera = camera;
         this.player = player;
         this.client = client;
         this.lastX = 0;
@@ -49,7 +52,7 @@ public class PlayerController { //This class handles all the controls from the p
 
     public void startGUI() {
         Skin skin = new Skin(Gdx.files.internal("gui skins/uiskin.json"));
-        stage = new GUIStage(player, skin, client);
+        stage = new GUIStage(world, camera, player, skin, client);
     }
 
     public boolean hasGUI() {

@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import Persistence.GUIGraphics;
 import Persistence.GameItem;
 import Persistence.Tile;
 import Persistence.GameObject;
@@ -35,24 +36,17 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void create() {
-        playerName = "Mathias";
+        playerName = "Kristian";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;
-        isDebug = true;
+        isDebug = false;
+        GameItem.load();
         KAnimation.load();
         GameObject.loadObjects();
         Tile.load();
         Weapon.load();
-        try {
-            GameItem.load();
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        GUIGraphics.load();
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         FitViewport viewPort = new FitViewport(0, 0, camera);
@@ -60,7 +54,7 @@ public class Game extends ApplicationAdapter {
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         gameState = GameState.PLAYING;
-        world = new GameWorld(false, "");
+        world = new GameWorld(false, "", camera);
         client = new MPClient(7777, world, playerName, playerPassword);
         //Chunk.makeSample();
     }
@@ -71,8 +65,12 @@ public class Game extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (world.getPlayer() != null) {
-            camera.position.x = world.getPlayer().getX() + 32 / 2;
-            camera.position.y = world.getPlayer().getY() + 32;
+            if (world.getPlayer().getX() + 32 / 2-camera.viewportWidth/2 > 0 && world.getPlayer().getX() + 32 / 2 + camera.viewportWidth/2 < world.getSizeX()) {
+                camera.position.x = world.getPlayer().getX() + 32 / 2;
+            }
+            if( world.getPlayer().getY() + 32 / 2 - camera.viewportHeight/2> 0 && world.getPlayer().getY() + 32 / 2 + camera.viewportHeight / 2 < world.getSizeY()) {
+                camera.position.y = world.getPlayer().getY() + 32 / 2;
+            }
         }
         camera.update();
         batch.setProjectionMatrix(camera.combined);
@@ -114,7 +112,7 @@ public class Game extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        if(playerController!=null) {
+        if (playerController != null) {
             playerController.dispose();
         }
     }

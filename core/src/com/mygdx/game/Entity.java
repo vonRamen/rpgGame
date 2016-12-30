@@ -5,6 +5,8 @@
  */
 package com.mygdx.game;
 
+import Server.ExtraCommand;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -56,6 +58,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected Stack<Task> tasks;
     protected boolean isAttacking;
     protected boolean isDead;
+    protected ExtraCommand extraCommand = ExtraCommand.NONE;
 
     public Entity(GameWorld world) {
         this.world = world;
@@ -197,13 +200,13 @@ public abstract class Entity implements Drawable, Cloneable {
     public void animationHandler() {
         //animate the right animationDirection:
         if (!isAttacking) { //Makes sure you're only able to attack one place at once.
-            if (changeX != 0 || changeY != 0) {
+            if (changeX != 0 || changeY != 0) { //UP(3), DOWN(0), LEFT(1), RIGHT(2);
                 if (changeX != 0) {
-                    int horiChange = (changeX > 0) ? KAnimation.Direction.RIGHT.getIndex() : KAnimation.Direction.LEFT.getIndex();
+                    int horiChange = (changeX > 0) ? Direction.RIGHT.getValue() : Direction.LEFT.getValue();
                     setAnimation(animationId, horiChange);
                 }
                 if (changeY != 0) {
-                    int verChange = (changeY > 0) ? KAnimation.Direction.UP.getIndex() : KAnimation.Direction.DOWN.getIndex();
+                    int verChange = (changeY > 0) ? Direction.UP.getValue() : Direction.DOWN.getValue();
                     setAnimation(animationId, verChange);
                 }
             } else {
@@ -263,6 +266,9 @@ public abstract class Entity implements Drawable, Cloneable {
     @Override
     public void draw() {
         if (animation != null) {
+            Game.batch.setColor(0, 0, 0, 0.4f);
+            Game.batch.draw(currentFrame, x, y-4);
+            Game.batch.setColor(Color.WHITE);
             Game.batch.draw(currentFrame, x, y);
         }
     }
@@ -332,6 +338,11 @@ public abstract class Entity implements Drawable, Cloneable {
      */
     public GameWorld getWorld() {
         return world;
+    }
+    
+    @Override
+    public String toString() {
+        return name;
     }
 
     @Override

@@ -5,9 +5,12 @@
  */
 package com.mygdx.game;
 
+import Persistence.GameItem;
 import Persistence.GameObject;
+import Server.WorldSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Json;
@@ -23,20 +26,26 @@ import java.util.Iterator;
  */
 public class GameWorld {
 
+    private String name;
     private ArrayList<Chunk> chunks;
     private ArrayList<Entity> entities;
     private ArrayList<Drawable> drawOrder;
     private ArrayList<DroppedItem> droppedItems;
     private DepthComparator depthComparator;
     private PlayerController playerController;
+    private OrthographicCamera camera;
+    private Client client;
     private double deltaTime;
     private int fieldOfView;
     private int size;
     private Player player;
     private String path;
     private World world;
+    private int sizeX;
+    private int sizeY;
 
-    public GameWorld(boolean isServer, String extraPath) {
+    public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
+        this.camera = camera;
         entities = new ArrayList();
         chunks = new ArrayList();
         drawOrder = new ArrayList();
@@ -59,10 +68,18 @@ public class GameWorld {
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
 //            player = Player.create(this, 0, 0);
+            spawnItem(1, 0, 0);
+            spawnItem(1, 64, 0);
+            spawnItem(1, 32, 0);
             spawnItem(0, 0, 0);
             //addEntity(new Human(this));
         }
         //Chunk.makeSample();
+        Chunk.makeSampleTest();
+    }
+
+    public GameWorld() {
+
     }
 
     public void updateRemoval(int chunkX, int chunkY) {
@@ -73,18 +90,22 @@ public class GameWorld {
                 double distanceBetweenX = Math.pow(Math.sqrt(chunk.getX() - chunkX), 2);
                 double distanceBetweenY = Math.pow(Math.sqrt(chunk.getY() - chunkY), 2);
                 if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
-                        ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
-                        drawOrder.removeAll(worldObjects);
-                        iterator.remove();
-                    }
+                    ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
+                    drawOrder.removeAll(worldObjects);
+                    iterator.remove();
+                    System.out.println("Chunk " + chunk.getUId() + " was removed.");
+                }
             } catch (ConcurrentModificationException exception) {
-                System.out.println("World removal Concurrent Modification Exception");
+                System.out.println("World removal Concurrent Modification Exception, breaking loop.. \n better luck next time");
+                break;
             }
         }
     }
 
     public void setPlayer(Client client, Player player) {
-        playerController = new PlayerController(client, player);
+        this.client = client;
+        WorldObject.setClient(this.client);
+        playerController = new PlayerController(client, player, camera);
         playerController.setWorld(this);
         this.player = player;
         addEntity(player);
@@ -101,7 +122,7 @@ public class GameWorld {
         entity.world = this;
         return entity;
     }
-    
+
     public void removeEntity(Entity entity) {
         entities.remove(entity);
         drawOrder.remove(entity);
@@ -109,31 +130,48 @@ public class GameWorld {
 
     public void update() {
         //if a gui hasn't been set up - set it up:
-        if(playerController!=null) {
+        if (playerController != null) {
             if (!playerController.hasGUI()) {
                 playerController.startGUI();
-            }   
+            }
             playerController.update();
         }
-        
-        
+
         deltaTime = Gdx.graphics.getDeltaTime();
         updateEntities();
         try {
             Collections.sort(drawOrder, depthComparator);
-        } catch(ConcurrentModificationException e) {
-            
+        } catch (ConcurrentModificationException e) {
+
+        }
+
+        //Update dropped items:
+        for (DroppedItem item : droppedItems) {
+            item.update(deltaTime);
         }
 
         //Update all chunks with access:
         for (Chunk chunk : chunks) {
             try {
-                if(chunk.getClientControlling().equals(player.uId)) {
+                if (chunk.getClientControlling().equals(player.uId)) {
                 }
-            } catch(ConcurrentModificationException e) {
-                
+            } catch (ConcurrentModificationException e) {
+
             }
         }
+    }
+
+    public WorldObject getWorldObject(WorldObject worldObject) {
+        for (Drawable drawable : drawOrder) {
+            if (drawable instanceof WorldObject) {
+                WorldObject w = (WorldObject) drawable;
+                if (w.getUid().equals(worldObject.uId)) {
+                    return w;
+                }
+            }
+
+        }
+        return null;
     }
 
     public void updateEntities() {
@@ -191,6 +229,23 @@ public class GameWorld {
         }
     }
 
+    public void updateWorldObject(WorldObject worldObject) {
+        Iterator iterator = drawOrder.iterator();
+        while (iterator.hasNext()) {
+            Drawable temp = (Drawable) iterator.next();
+            if (temp instanceof WorldObject) {
+                WorldObject oldObject = (WorldObject) temp;
+                if (oldObject.uId == null ? worldObject.uId == null : oldObject.uId.equals(worldObject.uId)) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+        Chunk chunk = getChunk((int) (worldObject.getX() / 32 / 32), (int) (worldObject.getY() / 32 / 32));
+        chunk.updateWorldObject(worldObject);
+        drawOrder.add(worldObject);
+    }
+
     void drawDebug() {
         if (Game.isDebug == true) {
             try {
@@ -203,11 +258,45 @@ public class GameWorld {
         }
     }
 
+    public int getSizeX() {
+        if (sizeX == 0) {
+            int highestX = 0;
+            for (Chunk chunk : getChunks()) {
+                if (chunk.getX() > highestX) {
+                    highestX = chunk.getX();
+                }
+            }
+            sizeX = highestX * 32 * 32;
+        }
+        return sizeX;
+    }
+
+    public int getSizeY() {
+        if (sizeY == 0) {
+            int highestY = 0;
+            for (Chunk chunk : getChunks()) {
+                if (chunk.getX() > highestY) {
+                    highestY = chunk.getY();
+                }
+            }
+            System.out.println("SizeY" + highestY);
+            sizeY = highestY * 32 * 32;
+        }
+        return sizeY;
+    }
+
     public Player getPlayer() {
         return player;
     }
-    
+
     public PlayerController getPlayerController() {
         return playerController;
     }
+
+    void applySettings(WorldSettings settings) {
+        sizeX = settings.getWorldSizeX();
+        sizeY = settings.getWorldSizeY();
+        name = settings.getName();
+    }
+
 }

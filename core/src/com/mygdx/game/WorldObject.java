@@ -5,9 +5,11 @@
  */
 package com.mygdx.game;
 
+import Persistence.Action;
 import Persistence.GameObject;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.esotericsoftware.kryonet.Client;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -23,10 +25,13 @@ public class WorldObject implements Drawable {
     protected String description;
     protected Rectangle rectangle;
     protected String uId;
+    protected static Client client;
+    
 
     public WorldObject(int id, int x, int y) {
         this.x = x;
         this.y = y;
+        this.id = id;
         this.uId = UUID.randomUUID().toString();
         initialize();
     }
@@ -40,10 +45,21 @@ public class WorldObject implements Drawable {
         }
     }
     
+    public void setId(int id) {
+        this.id = id;
+        WorldObject.client.sendTCP(this);
+        initialize();
+    }
+    
     public WorldObject() {
         
     }
 
+    public static void setClient(Client client) {
+        WorldObject.client = client;
+    }
+    
+    
     public static WorldObject create(int id, int x, int y) {
         WorldObject temp = new WorldObject(id, x, y);
         return temp;
@@ -57,5 +73,24 @@ public class WorldObject implements Drawable {
     @Override
     public float getY() {
         return y;
+    }
+
+    @Override
+    public ArrayList<Action> getActions() {
+        return GameObject.get(id).getActions();
+    }
+
+    @Override
+    public float getX() {
+        return x;
+    }
+    
+    @Override
+    public String toString() {
+        return GameObject.get(id).getName();
+    }
+    
+    public String getUid() {
+        return uId;
     }
 }
