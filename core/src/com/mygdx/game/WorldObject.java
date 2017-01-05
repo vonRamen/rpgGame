@@ -43,6 +43,7 @@ public class WorldObject implements Drawable {
                     GameObject.get(id).getBounds().width,
                     GameObject.get(id).getBounds().height);
         }
+        
     }
     
     public void setId(int id) {
@@ -92,5 +93,9 @@ public class WorldObject implements Drawable {
     
     public String getUid() {
         return uId;
+    }
+
+    void generateUId() {
+        this.uId = UUID.randomUUID().toString();
     }
 }

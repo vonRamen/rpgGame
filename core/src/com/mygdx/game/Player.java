@@ -75,4 +75,9 @@ public class Player extends Human {
         player.setY(y);
         return player;
     }
+    
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }

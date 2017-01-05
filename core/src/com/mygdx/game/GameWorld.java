@@ -62,6 +62,7 @@ public class GameWorld {
             Json json = new Json();
             for (FileHandle file : fileHandler.list()) {
                 Chunk chunk = json.fromJson(Chunk.class, file);
+                chunk.generateUid();
                 chunks.add(chunk);
             }
         } else {
@@ -75,7 +76,8 @@ public class GameWorld {
             //addEntity(new Human(this));
         }
         //Chunk.makeSample();
-        Chunk.makeSampleTest();
+        //Chunk.makeSampleTest();
+        //WorldGenerator.generate(10, 10);
     }
 
     public GameWorld() {
@@ -91,7 +93,11 @@ public class GameWorld {
                 double distanceBetweenY = Math.pow(Math.sqrt(chunk.getY() - chunkY), 2);
                 if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
                     ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
-                    drawOrder.removeAll(worldObjects);
+                    try {
+                        drawOrder.removeAll(worldObjects);
+                    } catch(IndexOutOfBoundsException e) {
+                        System.out.println("Tried removing objects, but got a"+e);
+                    }
                     iterator.remove();
                     System.out.println("Chunk " + chunk.getUId() + " was removed.");
                 }
@@ -151,12 +157,13 @@ public class GameWorld {
         }
 
         //Update all chunks with access:
-        for (Chunk chunk : chunks) {
-            try {
-                if (chunk.getClientControlling().equals(player.uId)) {
-                }
-            } catch (ConcurrentModificationException e) {
-
+        
+        
+        //Chunk updating privileges
+        Iterator iterator = chunks.iterator();
+        while(iterator.hasNext()) {
+            Chunk chunk = (Chunk) iterator.next();
+            if (chunk.getClientControlling().equals(player.uId)) {
             }
         }
     }
@@ -237,13 +244,13 @@ public class GameWorld {
                 WorldObject oldObject = (WorldObject) temp;
                 if (oldObject.uId == null ? worldObject.uId == null : oldObject.uId.equals(worldObject.uId)) {
                     iterator.remove();
+                    drawOrder.add(worldObject);
                     break;
                 }
             }
         }
         Chunk chunk = getChunk((int) (worldObject.getX() / 32 / 32), (int) (worldObject.getY() / 32 / 32));
         chunk.updateWorldObject(worldObject);
-        drawOrder.add(worldObject);
     }
 
     void drawDebug() {
@@ -279,7 +286,6 @@ public class GameWorld {
                     highestY = chunk.getY();
                 }
             }
-            System.out.println("SizeY" + highestY);
             sizeY = highestY * 32 * 32;
         }
         return sizeY;

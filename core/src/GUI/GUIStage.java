@@ -49,7 +49,7 @@ public class GUIStage extends Stage {
         isDrawing = true;
         this.skin = skin;
         this.player = player;
-        this.worldClickHandler = new WorldClickHandler(player, camera, world);
+        this.worldClickHandler = new WorldClickHandler(player, camera, world, skin, this);
         Gdx.input.setInputProcessor(multiPlexer);
 
         //this.addActor(new MainGUI(skin));
@@ -57,6 +57,7 @@ public class GUIStage extends Stage {
 
     public void act() {
         super.act();
+        worldClickHandler.update();
         if (isDrawing) {
         }
     }
@@ -122,7 +123,19 @@ public class GUIStage extends Stage {
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         super.touchUp(screenX, screenY, pointer, button);
-        worldClickHandler.click(screenX, screenY);
+        switch (button) {
+            case Input.Buttons.LEFT:
+                worldClickHandler.leftClick(screenX, screenY);
+                break;
+
+            case Input.Buttons.RIGHT:
+                worldClickHandler.rightClick(screenX, screenY);
+                break;
+
+            default:
+                break;
+        }
+
         return true;
     }
 
@@ -144,4 +157,9 @@ public class GUIStage extends Stage {
         return true;
     }
 
+    @Override
+    public void draw() {
+        super.draw();
+        worldClickHandler.draw();
+    }
 }

@@ -148,6 +148,7 @@ public abstract class Entity implements Drawable, Cloneable {
 
             ArrayList<Drawable> objects = checkDrawableCollision();
             if (objects.isEmpty()) {
+                //Check tiles in current Chunk
                 x += (direction_x * speed) * deltaTime;
                 y += (direction_y * speed) * deltaTime;
             } else {
@@ -267,7 +268,7 @@ public abstract class Entity implements Drawable, Cloneable {
     public void draw() {
         if (animation != null) {
             Game.batch.setColor(0, 0, 0, 0.4f);
-            Game.batch.draw(currentFrame, x, y-4);
+            Game.batch.draw(currentFrame, x, y - 4);
             Game.batch.setColor(Color.WHITE);
             Game.batch.draw(currentFrame, x, y);
         }
@@ -339,7 +340,7 @@ public abstract class Entity implements Drawable, Cloneable {
     public GameWorld getWorld() {
         return world;
     }
-    
+
     @Override
     public String toString() {
         return name;

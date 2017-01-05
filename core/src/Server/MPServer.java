@@ -6,12 +6,14 @@
 package Server;
 
 import Persistence.GameObject;
+import Persistence.NoiseGenerator;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.KKryo;
 import com.mygdx.game.Player;
 import com.mygdx.game.ServerListener;
+import com.mygdx.game.WorldGenerator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +42,9 @@ public class MPServer {
     public MPServer(int port) {
         worldName = "name";
         extraPath = "assets/worlds/"+worldName+"/";
+        //WorldGenerator.generateWorld("assets/", 10, 10);
         world = new GameWorld(true, extraPath, null);
+        //System.exit(0);
         Player.generate(extraPath+"players/", "Kristian", "ubv59mve");
         this.port = port;
         server = new Server();

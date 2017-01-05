@@ -109,14 +109,6 @@ public class Chunk implements Runnable {
 //                fileHandler.writeString(str, false);
 //            }
 //        }
-        ArrayList<Chunk> chunksList = WorldGenerator.generate(10, 10);
-        for(Chunk chunk : chunksList) {
-            Json json = new Json();
-            String str = json.toJson(chunk);
-
-            FileHandle fileHandler = new FileHandle("worlds/name/chunks/tiles"+chunk.getX()+" "+chunk.getY()+".json");
-            fileHandler.writeString(str, false);
-        }
 
     }
     
@@ -188,12 +180,19 @@ public class Chunk implements Runnable {
             Drawable temp = (Drawable) iterator.next();
             if (temp instanceof WorldObject) {
                 WorldObject oldObject = (WorldObject) temp;
-                if (oldObject.uId == null ? worldObject.uId == null : oldObject.uId.equals(worldObject.uId)) {
+                if (oldObject.uId.equals(worldObject.uId)) {
                     iterator.remove();
-                    worldObjects.add(worldObject);
+                    System.out.println("Chunk removed object..");
                     break;
                 }
             }
+        }
+        worldObjects.add(worldObject);
+    }
+
+    void generateUid() {
+        for (WorldObject worldObject : worldObjects) {
+            worldObject.generateUId();
         }
     }
 }

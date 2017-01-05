@@ -35,7 +35,7 @@ public class MPClient {
         client.addListener(new ClientListener(client, world, playerName));
         client.start();
         try {
-            client.connect(5000, "192.168.1.51", port);
+            client.connect(5000, "192.168.0.102", port);
             Packets.RequestAccess request = new Packets.RequestAccess();
             request.name = playerName;
             request.password = playerPassword;
