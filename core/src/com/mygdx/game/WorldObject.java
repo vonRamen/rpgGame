@@ -26,6 +26,7 @@ public class WorldObject implements Drawable {
     protected Rectangle rectangle;
     protected String uId;
     protected static Client client;
+    private float updateTimer;
     
 
     public WorldObject(int id, int x, int y) {
@@ -33,7 +34,7 @@ public class WorldObject implements Drawable {
         this.y = y;
         this.id = id;
         this.uId = UUID.randomUUID().toString();
-        initialize();
+        //initialize();
     }
     
     public void initialize() {
@@ -43,7 +44,11 @@ public class WorldObject implements Drawable {
                     GameObject.get(id).getBounds().width,
                     GameObject.get(id).getBounds().height);
         }
-        
+        this.updateTimer = GameObject.get(id).getRespawnTime();
+    }
+    
+    public void update(double deltaTime) {
+        GameObject.get(id).update(this, deltaTime);
     }
     
     public void setId(int id) {
@@ -53,7 +58,7 @@ public class WorldObject implements Drawable {
     }
     
     public WorldObject() {
-        
+        this.uId = UUID.randomUUID().toString();
     }
 
     public static void setClient(Client client) {
@@ -97,5 +102,19 @@ public class WorldObject implements Drawable {
 
     void generateUId() {
         this.uId = UUID.randomUUID().toString();
+    }
+
+    /**
+     * @return the updateTimer
+     */
+    public float getUpdateTimer() {
+        return updateTimer;
+    }
+
+    /**
+     * @param updateTimer the updateTimer to set
+     */
+    public void setUpdateTimer(float updateTimer) {
+        this.updateTimer = updateTimer;
     }
 }

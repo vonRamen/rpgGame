@@ -94,6 +94,12 @@ public class GUIStage extends Stage {
             this.isDrawing = !this.isDrawing;
             System.out.println("Drawing off.");
         }
+        if (keycode == Input.Keys.Z) {
+            if(inventory != null) {
+                this.player.pickup();
+                this.inventory.update();
+            }
+        }
         return true;
     }
 

@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.Game;
 import com.mygdx.game.KJson;
 import com.mygdx.game.SpriteRelative;
+import com.mygdx.game.WorldObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +58,9 @@ public class GameObject {
     protected ArrayList<SpriteRelative> sprites;
     protected String name;
     protected String description;
+    private float respawnTime;
+    protected boolean isRespawnObject;
+    protected int isRespawningInto;
     protected int id;
     protected Rectangle rectangle;
     protected ArrayList<Action> actions;
@@ -81,7 +85,7 @@ public class GameObject {
         Json json = new Json();
         for (FileHandle file : fileHandler.list()) {
             GameObject object = json.fromJson(GameObject.class, file);
-            System.out.println("object id "+object.id);
+            System.out.println("object id " + object.id);
             gameObjects.put(object.id, object);
         }
     }
@@ -132,13 +136,24 @@ public class GameObject {
         for (SpriteRelative spriteShadow : sprites) {
             //draw shadows.
             Game.batch.setColor(0, 0, 0, 0.4f);
-            Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y-4 + spriteShadow.getyRelative());
+            Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
             Game.batch.setColor(Color.WHITE);
         }
         for (SpriteRelative sprites : sprites) {
             //draw the actual sprites
             Game.batch.draw(objectSprites.get(sprites.getTextureId()), x + sprites.getxRelative(), y + sprites.getyRelative());
         }
+    }
+
+    public void update(WorldObject object, double deltaTime) {
+        if (object.getUpdateTimer() > 0) {
+            object.setUpdateTimer(object.getUpdateTimer() - (float) deltaTime);
+        } else {
+            if(isRespawnObject) {
+                object.setId(this.isRespawningInto);
+            }
+        }
+
     }
 
     /**
@@ -175,8 +190,15 @@ public class GameObject {
     public String getDescription() {
         return description;
     }
-    
+
     public ArrayList<Action> getActions() {
         return actions;
+    }
+
+    /**
+     * @return the respawnTime
+     */
+    public float getRespawnTime() {
+        return respawnTime;
     }
 }

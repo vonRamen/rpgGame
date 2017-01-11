@@ -26,6 +26,11 @@ import java.util.Iterator;
  */
 public class GameWorld {
 
+    private int fieldOfView;
+    private int size;
+    private int sizeX;
+    private int sizeY;
+    private double deltaTime;
     private String name;
     private ArrayList<Chunk> chunks;
     private ArrayList<Entity> entities;
@@ -34,15 +39,10 @@ public class GameWorld {
     private DepthComparator depthComparator;
     private PlayerController playerController;
     private OrthographicCamera camera;
-    private Client client;
-    private double deltaTime;
-    private int fieldOfView;
-    private int size;
     private Player player;
     private String path;
     private World world;
-    private int sizeX;
-    private int sizeY;
+    private Client client;
 
     public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
         this.camera = camera;
@@ -69,10 +69,10 @@ public class GameWorld {
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
 //            player = Player.create(this, 0, 0);
-            spawnItem(1, 0, 0);
-            spawnItem(1, 64, 0);
-            spawnItem(1, 32, 0);
-            spawnItem(0, 0, 0);
+            spawnItem(1, 20, 0, 5);
+            spawnItem(1, 64, 0, 64);
+            spawnItem(1, 32, 0, 32);
+            spawnItem(0, 120, 0, 1);
             //addEntity(new Human(this));
         }
         //Chunk.makeSample();
@@ -117,9 +117,9 @@ public class GameWorld {
         addEntity(player);
     }
 
-    public void spawnItem(int id, int x, int y) {
-        DroppedItem newItem = new DroppedItem(id, x, y);
-        droppedItems.add(newItem);
+    public void spawnItem(int id, int count, int x, int y) {
+        DroppedItem newItem = new DroppedItem(id, count, this, x, y);
+        getDroppedItems().add(newItem);
     }
 
     public Entity addEntity(Entity entity) {
@@ -152,8 +152,13 @@ public class GameWorld {
         }
 
         //Update dropped items:
-        for (DroppedItem item : droppedItems) {
+        Iterator itemIterator = droppedItems.iterator();
+        while(itemIterator.hasNext()) {
+            DroppedItem item = (DroppedItem) itemIterator.next();
             item.update(deltaTime);
+            if(item.toBeRemoved) {
+                itemIterator.remove();
+            }
         }
 
         //Update all chunks with access:
@@ -164,6 +169,12 @@ public class GameWorld {
         while(iterator.hasNext()) {
             Chunk chunk = (Chunk) iterator.next();
             if (chunk.getClientControlling().equals(player.uId)) {
+                //update objects in region:
+                Iterator objectIterator = chunk.getWorldObjects().iterator();
+                while (objectIterator.hasNext()) {
+                    WorldObject object = (WorldObject) objectIterator.next();
+                    object.update(deltaTime);
+                }
             }
         }
     }
@@ -225,7 +236,7 @@ public class GameWorld {
             for (Chunk c : chunks) {
                 c.draw();
             }
-            for (DroppedItem d : droppedItems) {
+            for (DroppedItem d : getDroppedItems()) {
                 d.draw();
             }
             for (Drawable d : drawOrder) {
@@ -303,6 +314,13 @@ public class GameWorld {
         sizeX = settings.getWorldSizeX();
         sizeY = settings.getWorldSizeY();
         name = settings.getName();
+    }
+
+    /**
+     * @return the droppedItems
+     */
+    public ArrayList<DroppedItem> getDroppedItems() {
+        return droppedItems;
     }
 
 }

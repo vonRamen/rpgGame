@@ -81,7 +81,7 @@ public class WorldClickHandler {
                     //if the object doesn't have any actions
                     return;
                 }
-                drawable.getActions().get(0).executeAction(player, drawable);
+                drawable.getActions().get(0).initializeExecution(player, drawable);
             }
         }
     }

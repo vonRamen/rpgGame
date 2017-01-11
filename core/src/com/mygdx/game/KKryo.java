@@ -55,5 +55,9 @@ public class KKryo {
         kryo.register(GameWorld.class);
         kryo.register(ExtraCommand.class);
         kryo.register(WorldSettings.class);
+        kryo.register(java.util.Random.class);
+        kryo.register(java.util.concurrent.atomic.AtomicLong.class);
+        kryo.register(Persistence.Action.class);
+        kryo.register(Persistence.DropItem.class);
     }
 }

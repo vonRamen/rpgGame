@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Rectangle;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 /**
  *
@@ -20,20 +21,30 @@ import java.util.ArrayList;
 public class DroppedItem implements Drawable {
 
     protected int x, y;
+    protected int yDirection; //1 = up, -1 = down
+    protected int id;
+    protected int count;
+    protected float alpha;
     protected float xFlow, yFlow; //The maplestory flow
     protected float yTop, yBottom;
     protected float ySpeed;
-    protected int yDirection; //1 = up, -1 = down
     protected float yTime; //for the interpolation
+    protected boolean isRemoving;
+    protected boolean toBeRemoved;
     protected Interpolation interpolation; //Used for item bounce
-    protected int id;
     protected String name;
     protected String description;
     protected Persistence.GameItem gameItem;
+    protected Rectangle bounds;
+    protected GameWorld world;
 
-    public DroppedItem(int id, int x, int y) {
+    public DroppedItem(int id, int count, GameWorld world, int x, int y) {
+        this.count = count;
+        this.id = id;
         this.x = x;
         this.y = y;
+        this.world = world;
+        alpha = 1;
         yTop = 5;
         yBottom = 16;
         yDirection = 1;
@@ -46,30 +57,37 @@ public class DroppedItem implements Drawable {
             return;
         }
         gameItem = GameItem.get(id);
+        bounds = new Rectangle(x + 4, y + 4, 8, 8);
     }
-    
+
     private double lerp(double point0, double point1, double time) {
-        return point0 + time*(point1-point0);
+        return point0 + time * (point1 - point0);
     }
 
     public void update(double deltaTime) {
         yTime += ySpeed * deltaTime;
         lerp(yFlow, 16, yTime);
-        if(yDirection == 1) {
+        if (yDirection == 1) {
             yFlow = interpolation.apply(yFlow, yTop, yTime);
         } else {
             yFlow = interpolation.apply(yFlow, 0, yTime);
         }
-        if(yFlow > yTop-0.1) {
-            if(yDirection != -1) {
+        if (yFlow > yTop - 0.1) {
+            if (yDirection != -1) {
                 yTime = 0;
             }
             yDirection = -1;
-        } else if(yFlow < 0+0.1) {
-            if(yDirection != 1) {
+        } else if (yFlow < 0 + 0.1) {
+            if (yDirection != 1) {
                 yTime = 0;
             }
             yDirection = 1;
+        }
+        if (isRemoving) {
+            this.alpha -= (float) deltaTime;
+            if (this.alpha < 0) {
+                toBeRemoved = true;
+            }
         }
     }
 
@@ -77,14 +95,24 @@ public class DroppedItem implements Drawable {
     public void draw() {
         //Draw shadow
         Game.batch.setColor(0, 0, 0, 0.4f);
-        Game.batch.draw(gameItem.getTexture(), x + xFlow, y-4 - yFlow);
+        Game.batch.draw(gameItem.getTexture(), x + xFlow, y - 4 - yFlow);
         Game.batch.setColor(Color.WHITE);
         //Draw item
+        Game.batch.setColor(1, 1, 1, alpha);
         gameItem.draw(x + (int) xFlow, y + (int) yFlow);
+        Game.batch.setColor(1, 1, 1, 1);
+    }
+
+    public Rectangle getBounds() {
+        return bounds;
     }
 
     public float getY() {
         return y;
+    }
+
+    public void remove() {
+        this.isRemoving = true;
     }
 
     @Override
@@ -95,6 +123,31 @@ public class DroppedItem implements Drawable {
     @Override
     public float getX() {
         return x;
+    }
+
+    /**
+     * @return the id
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * @return the count
+     */
+    public int getCount() {
+        return count;
+    }
+
+    /**
+     * @param count the count to set
+     */
+    public void setCount(int count) {
+        System.out.println("Count = " + count);
+        this.count = count;
+        if (this.count <= 0) {
+            this.remove();
+        }
     }
 
 }

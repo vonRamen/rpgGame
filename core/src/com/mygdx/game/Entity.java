@@ -27,38 +27,39 @@ import java.util.UUID;
  */
 public abstract class Entity implements Drawable, Cloneable {
 
-    protected String name;
+    protected boolean isNetworkObject;
+    protected boolean isAttacking;
+    protected boolean isMoving;
+    protected boolean isDead;
     protected float x;
     protected float y;
     protected float forceDir;
     protected float forceSpeed;
-    protected int chunkX; //The position of the chunk currently on
-    protected int chunkY;
-    protected int chunkXLastOn;
-    protected int chunkYLastOn;
     protected float changeX;
     protected float changeY;
     protected float strength;
     protected float boundsPattingX = 5;
     protected float boundsPattingY = 2;
-    protected float speed;
-    protected int hp;
     protected float animationTimer;
+    protected float speed;
     protected double deltaTime;
-    protected boolean isMoving;
+    protected int chunkX; //The position of the chunk currently on
+    protected int chunkY;
+    protected int chunkXLastOn;
+    protected int chunkYLastOn;
+    protected int hp;
+    protected int animationId;
+    protected int animationDirection;
+    protected String name;
     protected TextureRegion currentFrame;
     protected BodyDef bodyDef;
     protected Rectangle bounds;
     protected Animation animation;
-    protected int animationId;
-    protected int animationDirection;
     protected GameWorld world;
     protected String uId;
-    protected boolean isNetworkObject;
     protected Stack<Task> tasks;
-    protected boolean isAttacking;
-    protected boolean isDead;
     protected ExtraCommand extraCommand = ExtraCommand.NONE;
+    protected Inventory inventory;
 
     public Entity(GameWorld world) {
         this.world = world;
@@ -357,5 +358,15 @@ public abstract class Entity implements Drawable, Cloneable {
         bounds = null;
         animation = null;
         world = null;
+    }
+
+    public void pickup() {
+        
+        for (DroppedItem item : world.getDroppedItems()) {
+            if (bounds.overlaps(item.getBounds())) {
+                int countLeft = inventory.addItem(item.getId(), item.getCount());
+                item.setCount(countLeft);
+            }
+        }
     }
 }

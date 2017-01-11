@@ -37,7 +37,7 @@ public class GameItem {
     protected String name;
     protected String description;
     protected int basePrice;
-    protected int stackSize;
+    private int stackSize;
 
     public GameItem() {
         basePrice = 0;
@@ -97,5 +97,12 @@ public class GameItem {
     
     public void draw(int x, int y) {
         Game.batch.draw(itemTextures.get(this.id), x, y);
+    }
+
+    /**
+     * @return the stackSize
+     */
+    public int getStackSize() {
+        return stackSize;
     }
 }

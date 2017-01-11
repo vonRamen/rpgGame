@@ -7,6 +7,7 @@ package Server;
 
 import Persistence.GameObject;
 import Persistence.NoiseGenerator;
+import Utility.Grid;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
 import com.mygdx.game.GameWorld;
@@ -44,7 +45,6 @@ public class MPServer {
         extraPath = "assets/worlds/"+worldName+"/";
         //WorldGenerator.generateWorld("assets/", 10, 10);
         world = new GameWorld(true, extraPath, null);
-        //System.exit(0);
         Player.generate(extraPath+"players/", "Kristian", "ubv59mve");
         this.port = port;
         server = new Server();

@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.box2d.World;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 public class Human extends Entity {
 
     protected ArrayList<Entity> enemiesHit; //A list of the current enemies hit. Won't hit the same enemy twice.
-    protected Inventory inventory;
     private Skill skillCombat;
     private Skill skillWoodcutting;
     private Skill skillMining;
@@ -39,9 +39,12 @@ public class Human extends Entity {
     protected int weaponSpeed;
     protected int weaponPosX;
     protected int weaponPosY;
+    private EntityAction currentAction;
+    private float actionDuration;
 
     public Human() {
         super();
+        inventory = new Inventory(30);
     }
 
     public void addSkills() {
@@ -59,11 +62,22 @@ public class Human extends Entity {
     public Human(GameWorld world) {
         super(world);
         setAnimation(0, 0);
+        inventory = new Inventory(30);
     }
 
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
+
+        //Update actions:
+        //fx mining, smithing..
+        if (currentAction != null) {
+            currentAction.update(deltaTime);
+            if (currentAction.isDone()) {
+                currentAction = null;
+            }
+        }
+        //update weapon shit
         if (!isAttacking) {
             enemiesHit = new ArrayList();
             swing = 0;
@@ -138,15 +152,15 @@ public class Human extends Entity {
         Rectangle bounds = weaponSpriteReference.getBoundingRectangle();
         ArrayList<Entity> entitiesToDamage = this.checkEntityCollision(bounds);
         //Deal damage to the entities, but only once.
-        for(Entity entity : entitiesToDamage) {
+        for (Entity entity : entitiesToDamage) {
             boolean alreadyHit = false;
-            for(Entity entityAlreadyHit : enemiesHit) {
-                if(entity == entityAlreadyHit) {
+            for (Entity entityAlreadyHit : enemiesHit) {
+                if (entity == entityAlreadyHit) {
                     alreadyHit = true;
                     break;
                 }
             }
-            if(!alreadyHit) {
+            if (!alreadyHit) {
                 //add force and damage:
                 System.out.println("damage");
                 float ang = (float) Math.atan2(entity.getY() - y, entity.getX() - x);
@@ -154,7 +168,7 @@ public class Human extends Entity {
                 System.out.println(ang);
                 entity.damageThis(ang, Weapon.get(weapon).getDamage(), Weapon.get(weapon).getKnockback());
                 enemiesHit.add(entity);
-            } 
+            }
         }
     }
 
@@ -189,9 +203,10 @@ public class Human extends Entity {
     @Override
     public void removeNonSimpleTypes() {
         super.removeNonSimpleTypes();
+        currentAction = null;
         weaponSpriteReference = null;
     }
-    
+
     public void updateSlash() {
         enemiesHit = new ArrayList();
         swing = 0;
@@ -267,5 +282,22 @@ public class Human extends Entity {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         return null;
     }
-    
+
+    public void setAction(EntityAction action) {
+        currentAction = action;
+    }
+
+    /**
+     * @return the actionDuration
+     */
+    public float getActionDuration() {
+        return actionDuration;
+    }
+
+    /**
+     * @param actionDuration the actionDuration to set
+     */
+    public void setActionDuration(float actionDuration) {
+        this.actionDuration = actionDuration;
+    }
 }
