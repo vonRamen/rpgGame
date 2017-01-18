@@ -21,6 +21,7 @@ public class WorldObject implements Drawable {
 
     protected int x, y;
     protected int id;
+    protected boolean toBeRemoved;
     protected String name;
     protected String description;
     protected Rectangle rectangle;
@@ -116,5 +117,10 @@ public class WorldObject implements Drawable {
      */
     public void setUpdateTimer(float updateTimer) {
         this.updateTimer = updateTimer;
+    }
+
+    @Override
+    public boolean isFlaggedForRemoval() {
+        return toBeRemoved;
     }
 }

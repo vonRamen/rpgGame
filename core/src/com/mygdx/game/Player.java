@@ -9,6 +9,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Json;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -19,13 +20,18 @@ public class Player extends Human {
 
     private String userName;
     private String userPassword;
+    
+    //alerts is used to send alert windows to gui
+    private ArrayList<String> alerts;
 
     public Player(GameWorld world) {
         super(world);
+        alerts = new ArrayList();
     }
 
     public Player() {
         super();
+        alerts = new ArrayList();
     }
 
     @Override
@@ -63,6 +69,19 @@ public class Player extends Human {
             }
         }
         return null;
+    }
+    
+    public String getAlert() {
+        if(alerts.isEmpty()) {
+            return null;
+        }
+        String returnString = alerts.get(0);
+        alerts.remove(0);
+        return returnString;
+    }
+    
+    public void addAlert(String string) {
+        alerts.add(string);
     }
     
     public String getUsername() {

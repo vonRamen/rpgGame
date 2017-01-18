@@ -56,6 +56,7 @@ public class Game extends ApplicationAdapter {
         gameState = GameState.PLAYING;
         world = new GameWorld(false, "", camera);
         client = new MPClient(7777, world, playerName, playerPassword);
+        world.setClient(client.getClient());
         //Chunk.makeSample();
     }
 

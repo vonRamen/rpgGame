@@ -11,8 +11,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.Rectangle;
+import com.esotericsoftware.kryonet.Client;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.UUID;
 
 /**
  *
@@ -29,11 +31,13 @@ public class DroppedItem implements Drawable {
     protected float yTop, yBottom;
     protected float ySpeed;
     protected float yTime; //for the interpolation
+    protected float despawnTimer;
     protected boolean isRemoving;
     protected boolean toBeRemoved;
     protected Interpolation interpolation; //Used for item bounce
     protected String name;
     protected String description;
+    private String uId;
     protected Persistence.GameItem gameItem;
     protected Rectangle bounds;
     protected GameWorld world;
@@ -44,6 +48,7 @@ public class DroppedItem implements Drawable {
         this.x = x;
         this.y = y;
         this.world = world;
+        uId = UUID.randomUUID().toString();
         alpha = 1;
         yTop = 5;
         yBottom = 16;
@@ -57,7 +62,20 @@ public class DroppedItem implements Drawable {
             return;
         }
         gameItem = GameItem.get(id);
+        this.name = gameItem.toString();
         bounds = new Rectangle(x + 4, y + 4, 8, 8);
+        despawnTimer = 60;
+        sendUpdate();
+    }
+
+    public DroppedItem() {
+
+    }
+
+    public void initialize() {
+        interpolation = Interpolation.bounceIn;
+        bounds = new Rectangle(x + 4, y + 4, 8, 8);
+        gameItem = GameItem.get(id);
     }
 
     private double lerp(double point0, double point1, double time) {
@@ -89,12 +107,23 @@ public class DroppedItem implements Drawable {
                 toBeRemoved = true;
             }
         }
+
+        //remove item after a certain time.
+        despawnTimer -= deltaTime;
+        if (despawnTimer < 0) {
+            this.setCount(0);
+        }
     }
 
     @Override
     public void draw() {
-        //Draw shadow
-        Game.batch.setColor(0, 0, 0, 0.4f);
+        //calculate alpha for shadow
+        float shadowAlpha = 0.4f - (1 - alpha);
+        if (shadowAlpha < 0) {
+            shadowAlpha = 0;
+        }
+        //draw shadow
+        Game.batch.setColor(0, 0, 0, shadowAlpha);
         Game.batch.draw(gameItem.getTexture(), x + xFlow, y - 4 - yFlow);
         Game.batch.setColor(Color.WHITE);
         //Draw item
@@ -139,6 +168,10 @@ public class DroppedItem implements Drawable {
         return count;
     }
 
+    public void setWorld(GameWorld world) {
+        this.world = world;
+    }
+
     /**
      * @param count the count to set
      */
@@ -147,7 +180,36 @@ public class DroppedItem implements Drawable {
         this.count = count;
         if (this.count <= 0) {
             this.remove();
+            this.sendUpdate();
         }
+    }
+
+    public void sendUpdate() {
+        //If the item is received from the server, then don't send it!
+        
+        GameItem gameItemHold = gameItem;
+        Interpolation inter = this.interpolation;
+        Client client = world.getClient();
+        world = null;
+
+        this.gameItem = null;
+        this.interpolation = null;
+        if(client != null)
+            client.sendTCP(this);
+        this.gameItem = gameItemHold;
+        this.interpolation = inter;
+    }
+
+    /**
+     * @return the uId
+     */
+    public String getuId() {
+        return uId;
+    }
+
+    @Override
+    public boolean isFlaggedForRemoval() {
+        return toBeRemoved;
     }
 
 }

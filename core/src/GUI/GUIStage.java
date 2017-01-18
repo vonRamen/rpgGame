@@ -141,7 +141,7 @@ public class GUIStage extends Stage {
             default:
                 break;
         }
-
+        System.out.println(player.getAlert());
         return true;
     }
 

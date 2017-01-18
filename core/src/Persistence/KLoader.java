@@ -23,7 +23,7 @@ public class KLoader<T> {
     }
 
     public T load(Class<T> c, String path) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-        System.out.println("Path: "+path);
+        System.out.println("Path: " + path);
         file = Gdx.files.internal(path);
         String text = file.readString();
 
@@ -64,8 +64,8 @@ public class KLoader<T> {
                     case "double":
                         field.setDouble(object, Double.parseDouble(command[1]));
                         break;
- 
-                   case "float":
+
+                    case "float":
                         field.setFloat(object, Float.parseFloat(command[1]));
                         break;
 

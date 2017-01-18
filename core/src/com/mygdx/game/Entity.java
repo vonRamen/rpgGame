@@ -27,6 +27,7 @@ import java.util.UUID;
  */
 public abstract class Entity implements Drawable, Cloneable {
 
+    protected boolean toBeRemoved;
     protected boolean isNetworkObject;
     protected boolean isAttacking;
     protected boolean isMoving;
@@ -361,12 +362,19 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void pickup() {
-        
+        if(this.inventory == null) {
+            return;
+        }
         for (DroppedItem item : world.getDroppedItems()) {
             if (bounds.overlaps(item.getBounds())) {
                 int countLeft = inventory.addItem(item.getId(), item.getCount());
                 item.setCount(countLeft);
             }
         }
+    }
+    
+    @Override
+    public boolean isFlaggedForRemoval() {
+        return toBeRemoved;
     }
 }

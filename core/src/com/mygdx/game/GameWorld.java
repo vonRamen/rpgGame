@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  *
@@ -30,12 +31,14 @@ public class GameWorld {
     private int size;
     private int sizeX;
     private int sizeY;
+    private int drawableCount;
     private double deltaTime;
     private String name;
     private ArrayList<Chunk> chunks;
     private ArrayList<Entity> entities;
     private ArrayList<Drawable> drawOrder;
     private ArrayList<DroppedItem> droppedItems;
+    private ArrayList<Object> objectsToBeAdded; //This list is going to solve the sync problem..
     private DepthComparator depthComparator;
     private PlayerController playerController;
     private OrthographicCamera camera;
@@ -51,7 +54,7 @@ public class GameWorld {
         drawOrder = new ArrayList();
         droppedItems = new ArrayList();
         size = 5;
-        fieldOfView = 2;
+        fieldOfView = 1;
         if (isServer) {
 //            for (int iy = -size + 1; iy < size; iy++) {
 //                for (int ix = -size + 1; ix < size; ix++) {
@@ -68,11 +71,8 @@ public class GameWorld {
         } else {
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
+            objectsToBeAdded = new ArrayList();
 //            player = Player.create(this, 0, 0);
-            spawnItem(1, 20, 0, 5);
-            spawnItem(1, 64, 0, 64);
-            spawnItem(1, 32, 0, 32);
-            spawnItem(0, 120, 0, 1);
             //addEntity(new Human(this));
         }
         //Chunk.makeSample();
@@ -87,30 +87,20 @@ public class GameWorld {
     public void updateRemoval(int chunkX, int chunkY) {
         Iterator iterator = chunks.iterator();
         while (iterator.hasNext()) {
-            try {
-                Chunk chunk = (Chunk) iterator.next();
-                double distanceBetweenX = Math.pow(Math.sqrt(chunk.getX() - chunkX), 2);
-                double distanceBetweenY = Math.pow(Math.sqrt(chunk.getY() - chunkY), 2);
-                if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
-                    ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
-                    try {
-                        drawOrder.removeAll(worldObjects);
-                    } catch(IndexOutOfBoundsException e) {
-                        System.out.println("Tried removing objects, but got a"+e);
-                    }
-                    iterator.remove();
-                    System.out.println("Chunk " + chunk.getUId() + " was removed.");
-                }
-            } catch (ConcurrentModificationException exception) {
-                System.out.println("World removal Concurrent Modification Exception, breaking loop.. \n better luck next time");
-                break;
+            Chunk chunk = (Chunk) iterator.next();
+            double distanceBetweenX = Math.abs(chunk.getX() - chunkX);
+            double distanceBetweenY = Math.abs(chunk.getY() - chunkY);
+            System.out.println("Player Chunk X & Y: " + chunkX + " " + chunkY);
+            System.out.println("Distance Compared X & Y: " + distanceBetweenX + " " + distanceBetweenY);
+            if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
+                ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
+                chunk.flagObjectsForRemoval();
             }
         }
     }
 
-    public void setPlayer(Client client, Player player) {
-        this.client = client;
-        WorldObject.setClient(this.client);
+    public void setPlayer(Player player) {
+        WorldObject.setClient(this.getClient());
         playerController = new PlayerController(client, player, camera);
         playerController.setWorld(this);
         this.player = player;
@@ -153,30 +143,52 @@ public class GameWorld {
 
         //Update dropped items:
         Iterator itemIterator = droppedItems.iterator();
-        while(itemIterator.hasNext()) {
+        while (itemIterator.hasNext()) {
             DroppedItem item = (DroppedItem) itemIterator.next();
             item.update(deltaTime);
-            if(item.toBeRemoved) {
+            if (item.toBeRemoved) {
                 itemIterator.remove();
             }
         }
 
         //Update all chunks with access:
-        
-        
         //Chunk updating privileges
         Iterator iterator = chunks.iterator();
-        while(iterator.hasNext()) {
-            Chunk chunk = (Chunk) iterator.next();
-            if (chunk.getClientControlling().equals(player.uId)) {
-                //update objects in region:
-                Iterator objectIterator = chunk.getWorldObjects().iterator();
-                while (objectIterator.hasNext()) {
-                    WorldObject object = (WorldObject) objectIterator.next();
+        while (iterator.hasNext()) {
+            Chunk chunk = null;
+            try {
+                chunk = (Chunk) iterator.next();
+            } catch (ConcurrentModificationException exception) {
+                System.out.println("Breaking loop...");
+                break;
+            }
+            //update objects in region:
+            Iterator objectIterator = chunk.getWorldObjects().iterator();
+            int removedObjectCount = 0;
+            ArrayList<WorldObject> objectsToBeRemoved = new ArrayList();
+            while (objectIterator.hasNext()) {
+                WorldObject object = (WorldObject) objectIterator.next();
+                if (chunk.getClientControlling().equals(player.uId)) {
+                    //update the objects, if the player has the permission.
                     object.update(deltaTime);
                 }
+                if (object.toBeRemoved) {
+                    objectsToBeRemoved.add(object);
+                    removedObjectCount++;
+                }
+            }
+            drawOrder.removeAll(objectsToBeRemoved);
+            if (drawableCount != drawOrder.size()) {
+                System.out.println("Size: " + drawOrder.size() + " Objects removed: " + removedObjectCount);
+            }
+            drawableCount = drawOrder.size();
+
+            //remove chunk if flagged
+            if (chunk.isFlaggedForRemoval()) {
+                iterator.remove();
             }
         }
+        addReceivedObjects();
     }
 
     public WorldObject getWorldObject(WorldObject worldObject) {
@@ -193,7 +205,9 @@ public class GameWorld {
     }
 
     public void updateEntities() {
-        for (Entity e : entities) {
+        Iterator entityIterator = entities.iterator();
+        while (entityIterator.hasNext()) {
+            Entity e = (Entity) entityIterator.next();
             e.update(deltaTime);
         }
     }
@@ -323,4 +337,63 @@ public class GameWorld {
         return droppedItems;
     }
 
+    public void updateDroppedItem(DroppedItem item) {
+        Iterator it = droppedItems.iterator();
+        while (it.hasNext()) {
+            DroppedItem toRemove = (DroppedItem) it.next();
+            if (toRemove.getuId().equals(item.getuId())) {
+                it.remove();
+                break;
+            }
+        }
+        droppedItems.add(item);
+        item.setWorld(this);
+    }
+
+    /**
+     * @return the client
+     */
+    public Client getClient() {
+        return client;
+    }
+
+    public void addObjectToBeAdded(Object o) {
+        this.objectsToBeAdded.add(o);
+    }
+
+    public void addReceivedObjects() {
+        try {
+            for (Object o : objectsToBeAdded) {
+                if (o instanceof Chunk) {
+                    Chunk chunk = (Chunk) o;
+                    this.addChunk(chunk);
+                }
+                if (o instanceof WorldObject) {
+                    ((WorldObject) o).initialize();
+                    this.updateWorldObject((WorldObject) o);
+                }
+                if (o instanceof DroppedItem) {
+                    DroppedItem item = (DroppedItem) o;
+                    item.initialize();
+                    item.world = this;
+                    droppedItems.add(item);
+                }
+                if (o instanceof Entity) {
+                    Entity entity = (Entity) o;
+                    this.entities.add(entity);
+                    drawOrder.add(entity);
+                }
+            }
+            objectsToBeAdded.clear();
+        } catch(ConcurrentModificationException exception) {
+            
+        }
+    }
+
+    /**
+     * @param client the client to set
+     */
+    public void setClient(Client client) {
+        this.client = client;
+    }
 }

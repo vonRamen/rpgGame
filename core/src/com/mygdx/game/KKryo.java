@@ -7,6 +7,7 @@ package com.mygdx.game;
 
 import Server.ExtraCommand;
 import Server.WorldSettings;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -59,5 +60,7 @@ public class KKryo {
         kryo.register(java.util.concurrent.atomic.AtomicLong.class);
         kryo.register(Persistence.Action.class);
         kryo.register(Persistence.DropItem.class);
+        kryo.register(java.util.HashMap.class);
+        kryo.register(com.mygdx.game.DroppedItem.class);
     }
 }

@@ -105,4 +105,9 @@ public class GameItem {
     public int getStackSize() {
         return stackSize;
     }
+    
+    @Override
+    public String toString() {
+        return name;
+    }
 }

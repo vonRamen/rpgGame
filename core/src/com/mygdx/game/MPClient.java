@@ -32,7 +32,7 @@ public class MPClient {
         this.playerPassword = playerPassword;
         client = new Client(10000, 10000);
         registerPackets();
-        client.addListener(new ClientListener(client, world, playerName));
+        client.addListener(new ClientListener(getClient(), world, playerName));
         client.start();
         try {
             client.connect(5000, "127.0.0.1", port);
@@ -46,7 +46,14 @@ public class MPClient {
     }
     
     private void registerPackets() {
-        Kryo kryo = client.getKryo();
+        Kryo kryo = getClient().getKryo();
         KKryo.registerAll(kryo);
+    }
+
+    /**
+     * @return the client
+     */
+    public Client getClient() {
+        return client;
     }
 }

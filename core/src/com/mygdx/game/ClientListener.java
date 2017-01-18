@@ -23,12 +23,14 @@ public class ClientListener extends Listener {
     private String userName;
     private Client client;
     private HashMap<String, Entity> entitiesMap;
+    private HashMap<String, DroppedItem> droppedItems;
 
     public ClientListener(Client client, GameWorld world, String userName) {
         this.client = client;
         this.userName = userName;
         this.world = world;
         this.entitiesMap = new HashMap();
+        this.droppedItems = new HashMap();
     }
 
     @Override
@@ -59,7 +61,7 @@ public class ClientListener extends Listener {
                 if (player.getUsername().equals(userName)) {
                     if (world.getPlayer() == null) {
                         player.initialize();
-                        world.setPlayer(client, player);
+                        world.setPlayer(player);
                         entitiesMap.put(player.getUId(), player);
                     }
                 } else if (entitiesMap.containsKey(player.getUId())) {
@@ -98,7 +100,11 @@ public class ClientListener extends Listener {
         if (object instanceof WorldObject) {
             System.out.println("Transform!");
             WorldObject worldObject = (WorldObject) object;
-            world.updateWorldObject(worldObject);
+            world.addObjectToBeAdded(worldObject);
+        }
+        if (object instanceof DroppedItem) {
+            DroppedItem item = (DroppedItem) object;
+            world.addObjectToBeAdded(item);
         }
     }
 }

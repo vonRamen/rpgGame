@@ -35,6 +35,7 @@ public class Chunk implements Runnable {
     private ArrayList<Drawable> drawable;
     private String uId;
     private String controlledClient;
+    private boolean toBeRemoved;
 
     public Chunk(int x, int y, ArrayList<Drawable> drawable) {
         this.drawable = drawable;
@@ -194,5 +195,16 @@ public class Chunk implements Runnable {
         for (WorldObject worldObject : worldObjects) {
             worldObject.generateUId();
         }
+    }
+    
+    public void flagObjectsForRemoval() {
+        this.toBeRemoved = true;
+        for(WorldObject object : worldObjects) {
+            object.toBeRemoved = true;
+        }
+    }
+    
+    public boolean isFlaggedForRemoval() {
+        return toBeRemoved;
     }
 }

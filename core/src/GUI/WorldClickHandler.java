@@ -77,7 +77,7 @@ public class WorldClickHandler {
             int drawableTilePositionX = ((int) drawable.getX()) / 32;
             int drawableTilePositionY = ((int) drawable.getY()) / 32;
             if (drawableTilePositionX == tileX && drawableTilePositionY == tileY) {
-                if(drawable.getActions().size() == 0) {
+                if(drawable.getActions() == null || drawable.getActions().size() == 0 || drawable.getActions().get(0) == null) {
                     //if the object doesn't have any actions
                     return;
                 }

@@ -5,6 +5,7 @@
  */
 package com.mygdx.game;
 
+import Persistence.GameItem;
 import Server.ExtraCommand;
 import Server.WorldSettings;
 import com.esotericsoftware.kryonet.Connection;
@@ -15,6 +16,7 @@ import com.mygdx.game.Packets.EndMovement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +29,7 @@ public class ServerListener extends Listener {
 
     private ArrayList<Connection> connections;
     private HashMap<Connection, Player> playerToConnection;
+    private HashMap<String, DroppedItem> droppedItems;
     private GameWorld world;
     private WorldSettings worldSettings;
     private String fullPath;
@@ -39,6 +42,7 @@ public class ServerListener extends Listener {
         this.server = server;
         connections = new ArrayList();
         playerToConnection = new HashMap();
+        droppedItems = new HashMap();
         world = gameWorld;
         worldSettings = new WorldSettings("Test", world.getSizeX(), world.getSizeY());
     }
@@ -59,6 +63,7 @@ public class ServerListener extends Listener {
                 connection.sendTCP(worldSettings);
                 playerToConnection.put(connection, player);
                 sendWorldData(connection, player);
+                sendDroppedItemData(connection);
             }
             sendAllPlayerInfo();
         }
@@ -81,7 +86,7 @@ public class ServerListener extends Listener {
             sendWorldData(connection, player);
         }
         if (object instanceof Entity) {
-            if(object instanceof Player) {
+            if (object instanceof Player) {
                 playerToConnection.put(connection, (Player) object);
             }
             server.sendToAllExceptTCP(connection.getID(), object);
@@ -89,11 +94,18 @@ public class ServerListener extends Listener {
         if (object instanceof WorldObject) { //If the object has been modified
             WorldObject worldObject = (WorldObject) object;
             world.updateWorldObject(worldObject);
-            
+
             //--------------Add update to server!!!
-            
-            
-            server.sendToAllExceptTCP(connection.getID(), object);  
+            server.sendToAllExceptTCP(connection.getID(), object);
+        }
+        if (object instanceof DroppedItem) {
+            DroppedItem item = (DroppedItem) object;
+            droppedItems.put(item.getuId(), item);
+            System.out.println("DroppedItem : " + item.name);
+            server.sendToAllExceptTCP(connection.getID(), item);
+            if (droppedItems.get(item.getuId()).toBeRemoved) {
+                droppedItems.remove(item.getuId());
+            }
         }
     }
 
@@ -120,7 +132,7 @@ public class ServerListener extends Listener {
             }
         }
 
-        System.out.println("Player: "+player.getUsername());
+        System.out.println("Player: " + player.getUsername());
         //Set access for all the other clients
         if (!isRecurring) {
             isRecurring = true;
@@ -131,6 +143,15 @@ public class ServerListener extends Listener {
             }
         }
         System.out.println("has send data");
+    }
+    
+    public void sendDroppedItemData(Connection connection) {
+        Iterator iterator = droppedItems.entrySet().iterator();
+        while(iterator.hasNext()) {
+            Map.Entry pair = (Map.Entry) iterator.next();
+            DroppedItem item = (DroppedItem) pair.getValue();
+            connection.sendTCP(item);
+        }
     }
 
     public void removeClient(Connection connection) {

@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.box2d.World;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -21,10 +22,7 @@ import java.util.Iterator;
 public class Human extends Entity {
 
     protected ArrayList<Entity> enemiesHit; //A list of the current enemies hit. Won't hit the same enemy twice.
-    private Skill skillCombat;
-    private Skill skillWoodcutting;
-    private Skill skillMining;
-    private Skill skillFarming;
+    protected HashMap<String, Skill> skills;
     protected Sprite weaponSpriteReference;
     protected int middleX = 16;
     protected int middleY = 16;
@@ -48,10 +46,15 @@ public class Human extends Entity {
     }
 
     public void addSkills() {
-        skillCombat = new Skill("Combat", "This is the skill, where you specialize in melee combat.");
-        skillMining = new Skill("Mining", "This is the skill, where you mine ores.");
-        skillWoodcutting = new Skill("Woodcutting", "In this skill, you chop wood.");
-        skillFarming = new Skill("Farming", "In this skill, you farm stuff");
+        Skill skillCombat = new Skill("Combat", "This is the skill, where you specialize in melee combat.");
+        Skill skillMining = new Skill("Mining", "This is the skill, where you mine ores.");
+        Skill skillWoodcutting = new Skill("Woodcutting", "In this skill, you chop wood.");
+        Skill skillFarming = new Skill("Farming", "In this skill, you farm stuff");
+        skills = new HashMap();
+        skills.put("combat", skillCombat);
+        skills.put("mining", skillMining);
+        skills.put("woodcutting", skillWoodcutting);
+        skills.put("farming", skillFarming);
     }
 
     @Override
@@ -252,29 +255,8 @@ public class Human extends Entity {
     /**
      * @return the skillCombat
      */
-    public Skill getSkillCombat() {
-        return skillCombat;
-    }
-
-    /**
-     * @return the skillWoodcutting
-     */
-    public Skill getSkillWoodcutting() {
-        return skillWoodcutting;
-    }
-
-    /**
-     * @return the skillMining
-     */
-    public Skill getSkillMining() {
-        return skillMining;
-    }
-
-    /**
-     * @return the farmingSkill
-     */
-    public Skill getFarmingSkill() {
-        return skillFarming;
+    public Skill getSkill(String skillName) {
+        return skills.get(skillName);
     }
 
     @Override

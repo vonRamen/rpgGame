@@ -13,6 +13,8 @@ import java.util.ArrayList;
  * @author kristian
  */
 public interface Drawable {
+    
+    public boolean isFlaggedForRemoval();
     public void draw();
     public float getY();
     public float getX();

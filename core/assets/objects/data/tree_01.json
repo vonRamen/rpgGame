@@ -2,4 +2,5 @@
 {textureId:42,xRelative:0,yRelative:32},{textureId:43,xRelative:32,yRelative:32},{textureId:41,xRelative:-32,yRelative:32},
 {textureId:22,xRelative:0,yRelative:64},{textureId:23,xRelative:32,yRelative:64},{textureId:21,xRelative:-32,yRelative:64},
 {textureId:2,xRelative:0,yRelative:96},{textureId:3,xRelative:32,yRelative:96},{textureId:1,xRelative:-32,yRelative:96}],name:Tree,rectangle:{height:32,width:32,x:0,y:0},
-actions:[{name:chop,doesTransform:true,transformIntoId:3,doesDrop:true, baseTime:10,itemDrops:[{id:2, count:3, chance:100}]}]}
+actions:[{name:chop,doesTransform:true,transformIntoId:3,doesDrop:true, baseTime:10,requiredSkill:woodcutting,requiredLevel:1, expGain:35,
+itemDrops:[{id:2, count:3, chance:100}]}]}

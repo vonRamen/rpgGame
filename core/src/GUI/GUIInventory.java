@@ -39,29 +39,15 @@ public class GUIInventory {
         this.skin = skin;
         root = new VerticalGroup();
         table = new Table(skin);
-        Inventory inventory = player.getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            if (i % 4 == 0 && i != 0) {
-                table.row();
-            }
-            Button button = new Button(new TextureRegionDrawable(GameItem.get(inventory.getId(i)).getTexture()));
-            button.addListener(new ItemListener(inventory.getId(i)));
-            table.add(button);
-        }
-        table.setBackground(new TextureRegionDrawable(Tile.get(0)));
-        table.pack();
-        Label label = new Label("Inventory", skin);
-        root.addActor(label);
-        root.addActor(table);
-        root.setPosition(200, 400);
+        update();
     }
-    
+
     public Group getGroup() {
         return root;
     }
-    
+
     public void toggleVisibility() {
-        table.setVisible(!table.isVisible());
+        root.setVisible(!root.isVisible());
     }
 
     void update() {
@@ -75,6 +61,13 @@ public class GUIInventory {
             Button button = new Button(new TextureRegionDrawable(GameItem.get(inventory.getId(i)).getTexture()));
             button.addListener(new ItemListener(inventory.getId(i)));
             table.add(button);
+            
+            //If the count is higher than 1, show number of item.
+            if (inventory.getCount(i) > 1) {
+                Label count = new Label(String.valueOf(inventory.getCount(i)), skin);
+                count.setPosition(button.getX(), button.getY() + 20);
+                button.add(count);
+            }
         }
         table.setBackground(new TextureRegionDrawable(Tile.get(0)));
         table.pack();

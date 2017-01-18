@@ -45,8 +45,35 @@ public class Inventory {
         return id.length;
     }
 
-    public boolean hasItem(int id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean hasItem(int id, int count) {
+        int newCount = 0;
+        for (int i = 0; i < this.id.length; i++) {
+            if (this.id[i] == id) {
+                newCount += this.count[i];
+                if (newCount >= count) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void removeItem(int id, int count) {
+        for (int i = 0; i < this.id.length; i++) {
+            if (this.id[i] == i) {
+                if (this.count[i] >= count) {
+                    this.count[i] -= count;
+                    if (this.count[i] == 0) {
+                        this.id[i] = 0;
+                    }
+                    return;
+                } else {
+                    count -= this.count[i];
+                    this.id[i] = 0;
+                    this.count[i] = 0;
+                }
+            }
+        }
     }
 
     /**
@@ -58,45 +85,41 @@ public class Inventory {
      */
     public int addItem(int id, int count) {
         int maxCount = GameItem.get(id).getStackSize();
-        int canMaxHoldOnSlot;
         int newCount = 0;
+        System.out.println("id " + id);
 
         for (int i = 0; i < this.id.length; i++) {
             if (this.id[i] == id) {
-                if(count <= 0) {
+                if (count <= 0) {
                     break;
                 }
-                if(this.count[i] == maxCount) {
-                    break;
-                }
-                if(count > this.count[i] + maxCount) {
+                if (count > maxCount - this.count[i]) {
                     newCount = maxCount;
-                    count -= (maxCount-this.count[i]);
+                    count -= (maxCount - this.count[i]);
+                } else if (this.count[i] == maxCount) {
+                    newCount = maxCount;
                 } else {
                     newCount = this.count[i] + count;
                     count = 0;
                 }
                 this.count[i] = newCount;
-                System.out.println("Count: "+count);
+                System.out.println("Count: " + count);
             }
         }
         for (int i = 0; i < this.id.length; i++) {
             if (this.id[i] == 0) {
-                if(count <= 0) {
+                if (count <= 0) {
                     break;
                 }
-                this.id[i] = id;
-                if(count > this.count[i] + maxCount) {
+                if (count > maxCount - this.count[i]) {
                     newCount = maxCount;
-                    count -= (maxCount-this.count[i]);
+                    count -= (maxCount - this.count[i]);
                 } else {
                     newCount = this.count[i] + count;
                     count = 0;
                 }
+                this.id[i] = id;
                 this.count[i] = newCount;
-                if(count <= 0) {
-                    break;
-                }
             }
         }
         return count;
