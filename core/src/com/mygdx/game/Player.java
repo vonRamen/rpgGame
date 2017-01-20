@@ -20,7 +20,8 @@ public class Player extends Human {
 
     private String userName;
     private String userPassword;
-    
+    private boolean hasUpdatedInventory;
+
     //alerts is used to send alert windows to gui
     private ArrayList<String> alerts;
 
@@ -38,8 +39,7 @@ public class Player extends Human {
     public void initialize() {
         super.initialize();
     }
-    
-    
+
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
@@ -62,28 +62,28 @@ public class Player extends Human {
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
         Json json = new Json();
         Player player = json.fromJson(Player.class, fileHandle);
-        if(player!=null) {
-            if(player.userPassword.equals(userPassword)) {
+        if (player != null) {
+            if (player.userPassword.equals(userPassword)) {
                 player.uId = UUID.randomUUID().toString();
                 return player;
             }
         }
         return null;
     }
-    
+
     public String getAlert() {
-        if(alerts.isEmpty()) {
+        if (alerts.isEmpty()) {
             return null;
         }
         String returnString = alerts.get(0);
         alerts.remove(0);
         return returnString;
     }
-    
+
     public void addAlert(String string) {
         alerts.add(string);
     }
-    
+
     public String getUsername() {
         return userName;
     }
@@ -94,9 +94,17 @@ public class Player extends Human {
         player.setY(y);
         return player;
     }
-    
+
     public void setPosition(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+    
+    public void setInventoryUpdate(boolean isUpdated) {
+        hasUpdatedInventory = isUpdated;
+    }
+
+    public boolean hasUpdatedInventory() {
+        return hasUpdatedInventory;
     }
 }

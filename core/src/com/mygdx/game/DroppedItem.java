@@ -176,7 +176,6 @@ public class DroppedItem implements Drawable {
      * @param count the count to set
      */
     public void setCount(int count) {
-        System.out.println("Count = " + count);
         this.count = count;
         if (this.count <= 0) {
             this.remove();
@@ -189,15 +188,17 @@ public class DroppedItem implements Drawable {
         
         GameItem gameItemHold = gameItem;
         Interpolation inter = this.interpolation;
+        GameWorld worldHold = world;
         Client client = world.getClient();
-        world = null;
-
         this.gameItem = null;
         this.interpolation = null;
+        world = null;
+
         if(client != null)
             client.sendTCP(this);
         this.gameItem = gameItemHold;
         this.interpolation = inter;
+        this.world = worldHold;
     }
 
     /**

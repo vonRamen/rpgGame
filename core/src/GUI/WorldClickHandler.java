@@ -8,10 +8,12 @@ package GUI;
 import Persistence.Action;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.mygdx.game.Drawable;
 import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
@@ -27,20 +29,17 @@ public class WorldClickHandler {
     private GameWorld world;
     private Player player;
     private int x, y;
-    private Stage stage;
     private Skin skin;
     private Table table;
 
-    public WorldClickHandler(Player player, OrthographicCamera camera, GameWorld world, Skin skin, Stage stage) {
+    public WorldClickHandler(Player player, OrthographicCamera camera, GameWorld world, Skin skin, Table table) {
         this.player = player;
         this.camera = camera;
         this.world = world;
-        this.stage = stage;
         this.skin = skin;
-        this.table = new Table();
-        stage.addActor(table);
+        this.table = table;
     }
-
+    
     public void rightClick(int x, int y) {
         int tileX = getTileX(x);
         int tileY = getTileY(y);
@@ -56,6 +55,7 @@ public class WorldClickHandler {
                 }
                 for (Action action : drawable.getActions()) {
                     TextButton textButton = new TextButton(action.getName(), skin);
+                    textButton.addListener(new ActionClickListener(player, drawable, action));
                     table.add(textButton);
                     table.row();
                 }

@@ -39,6 +39,10 @@ public class GUIStage extends Stage {
     private Label fpsLabel;
     private Table debugLayout;
     private WorldClickHandler worldClickHandler;
+    private boolean combatMode;
+
+    //Menu you get, when you rightclick on something
+    private Table rightClickMenu;
 
     public GUIStage(GameWorld world, OrthographicCamera camera, Player player, Skin skin, Client client) {
         super();
@@ -49,7 +53,11 @@ public class GUIStage extends Stage {
         isDrawing = true;
         this.skin = skin;
         this.player = player;
-        this.worldClickHandler = new WorldClickHandler(player, camera, world, skin, this);
+        this.rightClickMenu = new Table();
+        this.rightClickMenu.setZIndex(1);
+        this.worldClickHandler = new WorldClickHandler(player, camera, world, skin, rightClickMenu);
+        this.addActor(rightClickMenu);
+        toggleInventory();
         Gdx.input.setInputProcessor(multiPlexer);
 
         //this.addActor(new MainGUI(skin));
@@ -60,11 +68,15 @@ public class GUIStage extends Stage {
         worldClickHandler.update();
         if (isDrawing) {
         }
+        if (player.hasUpdatedInventory()) {
+            this.inventory.update();
+            player.setInventoryUpdate(false);
+        }
     }
 
     public void toggleInventory() {
         if (player != null && inventory == null) {
-            inventory = new GUIInventory(player, skin);
+            inventory = new GUIInventory(player, skin, rightClickMenu);
             this.addActor(inventory.getGroup());
         } else {
             inventory.toggleVisibility();
@@ -90,12 +102,15 @@ public class GUIStage extends Stage {
         if (keycode == Input.Keys.I) {
             toggleInventory();
         }
+        if (keycode == Input.Keys.Q) {
+            combatMode = !combatMode;
+        }
         if (keycode == Input.Keys.D) {
             this.isDrawing = !this.isDrawing;
             System.out.println("Drawing off.");
         }
         if (keycode == Input.Keys.Z) {
-            if(inventory != null) {
+            if (inventory != null) {
                 this.player.pickup();
                 this.inventory.update();
             }
@@ -113,15 +128,16 @@ public class GUIStage extends Stage {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         super.touchDown(screenX, screenY, pointer, button);
         if (player != null) {
-            player.attack();
-            try {
-                Player playerCopy = (Player) player.clone();
-                playerCopy.removeNonSimpleTypes();
-                client.sendTCP(playerCopy);
-            } catch (CloneNotSupportedException ex) {
-                System.out.println(ex);
+            if (combatMode) {
+                player.attack();
+                try {
+                    Player playerCopy = (Player) player.clone();
+                    playerCopy.removeNonSimpleTypes();
+                    client.sendTCP(playerCopy);
+                } catch (CloneNotSupportedException ex) {
+                    System.out.println(ex);
+                }
             }
-
         }
         return true;
     }
@@ -167,5 +183,9 @@ public class GUIStage extends Stage {
     public void draw() {
         super.draw();
         worldClickHandler.draw();
+    }
+
+    public Skin getSkin() {
+        return skin;
     }
 }

@@ -13,12 +13,17 @@ import Persistence.GameItem;
  */
 public class Inventory {
 
+    private Entity entity;
     private int[] count;
     private int[] id;
 
     public Inventory(int size) {
         count = new int[size];
         id = new int[size];
+    }
+    
+    public void setEntity(Entity entity) {
+        this.entity = entity;
     }
 
     public Inventory() {
@@ -27,6 +32,17 @@ public class Inventory {
 
     public void drop(int id, int count) {
 
+    }
+    
+    public void dropOnSlot(int slotId) {
+        int x = (int) entity.getX();
+        int y = (int) entity.getY();
+        
+        GameWorld world = entity.getWorld();
+        
+        world.spawnItem(this.id[slotId], this.count[slotId], x, y);
+        this.id[slotId] = 0;
+        this.count[slotId] = 0;
     }
 
     public void add(int id, int count) {
@@ -60,7 +76,7 @@ public class Inventory {
 
     public void removeItem(int id, int count) {
         for (int i = 0; i < this.id.length; i++) {
-            if (this.id[i] == i) {
+            if (this.id[i] == id) {
                 if (this.count[i] >= count) {
                     this.count[i] -= count;
                     if (this.count[i] == 0) {
@@ -123,5 +139,9 @@ public class Inventory {
             }
         }
         return count;
+    }
+    
+    public void prepareSend() {
+        this.entity = null;
     }
 }

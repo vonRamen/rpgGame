@@ -36,7 +36,7 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void create() {
-        playerName = "Kristian";
+        playerName = "Mathias";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;

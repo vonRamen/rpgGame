@@ -85,9 +85,7 @@ public class GameWorld {
     }
 
     public void updateRemoval(int chunkX, int chunkY) {
-        Iterator iterator = chunks.iterator();
-        while (iterator.hasNext()) {
-            Chunk chunk = (Chunk) iterator.next();
+        for(Chunk chunk : this.chunks) {
             double distanceBetweenX = Math.abs(chunk.getX() - chunkX);
             double distanceBetweenY = Math.abs(chunk.getY() - chunkY);
             System.out.println("Player Chunk X & Y: " + chunkX + " " + chunkY);
@@ -148,6 +146,7 @@ public class GameWorld {
             item.update(deltaTime);
             if (item.toBeRemoved) {
                 itemIterator.remove();
+                System.out.println("Item removed!");
             }
         }
 
@@ -184,8 +183,12 @@ public class GameWorld {
             drawableCount = drawOrder.size();
 
             //remove chunk if flagged
-            if (chunk.isFlaggedForRemoval()) {
-                iterator.remove();
+        }
+        Iterator deleteChunkIterator = chunks.iterator();
+        while(deleteChunkIterator.hasNext()) {
+            Chunk c = (Chunk) deleteChunkIterator.next();
+            if(c.isFlaggedForRemoval()) {
+                deleteChunkIterator.remove();
             }
         }
         addReceivedObjects();
@@ -205,10 +208,8 @@ public class GameWorld {
     }
 
     public void updateEntities() {
-        Iterator entityIterator = entities.iterator();
-        while (entityIterator.hasNext()) {
-            Entity e = (Entity) entityIterator.next();
-            e.update(deltaTime);
+        for(Entity entity : entities) {
+            entity.update(deltaTime);
         }
     }
 
@@ -366,7 +367,13 @@ public class GameWorld {
             for (Object o : objectsToBeAdded) {
                 if (o instanceof Chunk) {
                     Chunk chunk = (Chunk) o;
+                    chunk.initialize();
                     this.addChunk(chunk);
+                    Iterator it = chunk.getWorldObjects().iterator();
+                    while (it.hasNext()) {
+                        WorldObject worldO = (WorldObject) it.next();
+                        getDrawable().add(worldO);
+                    }
                 }
                 if (o instanceof WorldObject) {
                     ((WorldObject) o).initialize();
@@ -375,8 +382,7 @@ public class GameWorld {
                 if (o instanceof DroppedItem) {
                     DroppedItem item = (DroppedItem) o;
                     item.initialize();
-                    item.world = this;
-                    droppedItems.add(item);
+                    updateDroppedItem(item);
                 }
                 if (o instanceof Entity) {
                     Entity entity = (Entity) o;
@@ -385,8 +391,8 @@ public class GameWorld {
                 }
             }
             objectsToBeAdded.clear();
-        } catch(ConcurrentModificationException exception) {
-            
+        } catch (ConcurrentModificationException exception) {
+
         }
     }
 

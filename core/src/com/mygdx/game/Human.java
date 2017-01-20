@@ -208,6 +208,7 @@ public class Human extends Entity {
         super.removeNonSimpleTypes();
         currentAction = null;
         weaponSpriteReference = null;
+        this.inventory.prepareSend();
     }
 
     public void updateSlash() {
@@ -282,4 +283,5 @@ public class Human extends Entity {
     public void setActionDuration(float actionDuration) {
         this.actionDuration = actionDuration;
     }
+    
 }

@@ -47,13 +47,7 @@ public class ClientListener extends Listener {
                 return;
             }
             //if not existing, initialize and add to lists.
-            chunk.initialize();
-            world.addChunk(chunk);
-            Iterator it = chunk.getWorldObjects().iterator();
-            while (it.hasNext()) {
-                WorldObject worldO = (WorldObject) it.next();
-                world.getDrawable().add(worldO);
-            }
+            world.addObjectToBeAdded(chunk);
         }
         if (object instanceof Entity) {
             if (object instanceof Player) {

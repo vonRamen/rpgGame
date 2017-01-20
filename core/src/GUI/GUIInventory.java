@@ -5,11 +5,15 @@
  */
 package GUI;
 
+import Persistence.GUIGraphics;
 import Persistence.GameItem;
 import Persistence.Tile;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
@@ -20,8 +24,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.mygdx.game.Inventory;
 import com.mygdx.game.Player;
+import javax.swing.GroupLayout;
 
 /**
  *
@@ -33,8 +39,10 @@ public class GUIInventory {
     private Player player;
     private VerticalGroup root;
     private Table table;
+    private Table rightClickBox;
 
-    public GUIInventory(Player player, Skin skin) {
+    public GUIInventory(Player player, Skin skin, Table rightClickBox) {
+        this.rightClickBox = rightClickBox;
         this.player = player;
         this.skin = skin;
         root = new VerticalGroup();
@@ -59,7 +67,7 @@ public class GUIInventory {
                 table.row();
             }
             Button button = new Button(new TextureRegionDrawable(GameItem.get(inventory.getId(i)).getTexture()));
-            button.addListener(new ItemListener(inventory.getId(i)));
+            button.addListener(new ItemListener(i, Buttons.RIGHT, rightClickBox, skin, player));
             table.add(button);
             
             //If the count is higher than 1, show number of item.
@@ -69,11 +77,17 @@ public class GUIInventory {
                 button.add(count);
             }
         }
-        table.setBackground(new TextureRegionDrawable(Tile.get(0)));
+        table.setBackground(GUIGraphics.get("inventory.png"));
         table.pack();
         Label label = new Label("Inventory", skin);
-        root.addActor(label);
+        Button handleBar = new Button(GUIGraphics.get("inventory_handle.png"));
+        handleBar.addActor(label);
+        handleBar.setHeight(label.getHeight());
+        handleBar.addListener(new DragHandleListener(root));
+        label.setPosition(handleBar.getX()+handleBar.getWidth()/2 - label.getWidth()/2, 0);
+        root.addActor(handleBar);
         root.addActor(table);
         root.setPosition(200, 400);
+        root.setZIndex(0);
     }
 }

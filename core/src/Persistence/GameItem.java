@@ -32,6 +32,7 @@ public class GameItem {
     protected static ArrayList<TextureRegion> itemTextures;
     protected static String path = "items/";
     protected static KJson JSON;
+    protected ArrayList<Action> actions;
     protected int id;
     protected int sprite_id;
     protected String name;
@@ -42,6 +43,7 @@ public class GameItem {
     public GameItem() {
         basePrice = 0;
         stackSize = 30;
+        actions = new ArrayList();
     }
     
     public static void load() {
@@ -109,5 +111,9 @@ public class GameItem {
     @Override
     public String toString() {
         return name;
+    }
+    
+    public ArrayList<Action> getActions() {
+        return actions;
     }
 }

@@ -10,13 +10,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.UUID;
@@ -75,6 +69,7 @@ public abstract class Entity implements Drawable, Cloneable {
         speed = 125;
         strength = 50;
         addBounds();
+        this.inventory.setEntity(this);
     }
 
     public Entity() {
@@ -279,6 +274,7 @@ public abstract class Entity implements Drawable, Cloneable {
     /**
      * @return the x
      */
+    @Override
     public float getX() {
         return x;
     }
