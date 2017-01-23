@@ -61,8 +61,8 @@ public class PlayerController { //This class handles all the controls from the p
 
     public void inputHandling() {
         if (player != null) {
-            int hAxis = ((Gdx.input.isKeyPressed(Keys.RIGHT) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.LEFT) ? 1 : 0));
-            int vAxis = ((Gdx.input.isKeyPressed(Keys.UP) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.DOWN) ? 1 : 0));
+            int hAxis = ((Gdx.input.isKeyPressed(Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.A) ? 1 : 0));
+            int vAxis = ((Gdx.input.isKeyPressed(Keys.W) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.S) ? 1 : 0));
             player.move(hAxis, vAxis);
 
             if ((lastX != vAxis || lastY != hAxis) && (vAxis != 0 || hAxis != 0)) { //send update
@@ -107,8 +107,6 @@ public class PlayerController { //This class handles all the controls from the p
             lastX = vAxis;
             lastY = hAxis;
         }
-
-        //get mouse input:
     }
 
     public void update() {

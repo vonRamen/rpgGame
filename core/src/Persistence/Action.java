@@ -5,6 +5,7 @@
  */
 package Persistence;
 
+import com.badlogic.gdx.math.Vector2;
 import com.mygdx.game.Drawable;
 import com.mygdx.game.Entity;
 import com.mygdx.game.EntityAction;
@@ -27,6 +28,7 @@ public class Action {
     private String requiredSkill;
     private int expGain;
     private float baseTime;
+    private float maxDistance;
     private int requiredEquipmentId;
     private boolean doesRequireEquipment;
     private boolean doesTransform; //Does the tree transform into a stump after chop?
@@ -37,10 +39,15 @@ public class Action {
     private ArrayList<DropItem> itemTakes;
     private Random RGN;
 
+    //Music and sounds
+    private String soundEffect;
+    private boolean soundIsLooping;
+    private Sound2D activeSound;
+
     public Action() {
         RGN = new Random();
     }
-    
+
     public Action(String name) {
         this.name = name;
     }
@@ -92,18 +99,35 @@ public class Action {
                 human.getInventory().addItem(item.getId(), item.getCount());
             }
         }
-        if(human instanceof Player) {
+        if (human instanceof Player) {
             ((Player) human).setInventoryUpdate(true);
+        }
+        if (activeSound != null) {
+            activeSound.stop();
         }
         return true;
     }
 
     public boolean canExecute(Human human, Drawable object) {
+        if (maxDistance != 0) {
+            Vector2 humanPos = new Vector2(human.getX(), human.getY());
+            if (humanPos.dst2(object.getX(), object.getY()) > maxDistance) {
+                    if (human instanceof Player) {
+                        System.out.println(humanPos.dst2(object.getX(), object.getY()));
+                        Player player = (Player) human;
+                        player.addAlert("Not close enough to perform action!");
+                    }
+                return false;
+            }
+        }
         if (itemTakes != null) {
             for (DropItem item : itemTakes) {
                 if (!human.getInventory().hasItem(item.getId(), item.getCount())) {
-                    Player player = (Player) human;
-                    player.addAlert("Not sufficient amount of: " + GameItem.get(item.getId()).name);
+                    if (human instanceof Player) {
+                        Player player = (Player) human;
+                        player.addAlert("Not sufficient amount of: " + GameItem.get(item.getId()).name);
+                    }
+                    return false;
                 }
             }
         }
@@ -129,7 +153,7 @@ public class Action {
     }
 
     public void initializeExecution(Human human, Drawable object) {
-        if(this.name.equals("drop")) {
+        if (this.name.equals("drop")) {
             //then the "id" is actually the slot id
             human.getInventory().setEntity(human);
             human.getInventory().dropOnSlot(slotId);
@@ -137,6 +161,13 @@ public class Action {
             return;
         }
         if (canExecute(human, object)) {
+            if (this.soundEffect != null) {
+                activeSound = new Sound2D(this.soundEffect);
+                Player player = human.getWorld().getPlayer();
+                activeSound.play(human.getWorld().getPlayer(), human, soundIsLooping);
+            } else {
+                System.out.println("Sound missing! " + soundEffect);
+            }
             human.setAction(new EntityAction(this, human, object));
             human.setActionDuration(2);
         }
@@ -148,7 +179,7 @@ public class Action {
     public String getName() {
         return name;
     }
-    
+
     public void setSlotId(int slotId) {
         this.slotId = slotId;
     }

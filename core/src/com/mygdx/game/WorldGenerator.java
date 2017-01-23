@@ -84,13 +84,12 @@ public class WorldGenerator extends Thread {
             generateByNoise(tiles);
         } while (this.evaluate(2, 70f, 85f) != true);
         log("Placing water straight from corner to corner to test");
-        generateLine(0, 0, 0, w*10*32, h*10*32, 4);
-        
+        generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4);
+
         //places 10 percent trees randomly:
         placeByPercentage(0, 5f, 2);
         placeByPercentage(2, 2f, 2, 3);
-        
-        
+
         //what do you wanna do?
         //placeRandomSquare(worldObjects, 0, 0, 32, 32, 0, 100);
         //placeRandomSquare(worldObjects, 32, 32, 32, 32, 0, 100);
@@ -155,67 +154,70 @@ public class WorldGenerator extends Thread {
             }
         }
     }
-    
+
     private void placeByPercentage(int id, float percentage, int... tile) {
-        float maxObjects = (((float) (w*32*h*32))/100)*percentage;
-        log("Placing "+maxObjects+" of the id: "+id+" in the world..");
+        float maxObjects = (((float) (w * 32 * h * 32)) / 100) * percentage;
+        log("Placing " + maxObjects + " of the id: " + id + " in the world..");
         int count = 0;
-        while(count < maxObjects) {
-            int randomX = random.nextInt(w*32);
-            int randomY = random.nextInt(h*32);
-            if(!objectAtPosition(worldObjects, randomX*32, randomY*32)) {
+        while (count < maxObjects) {
+            int randomX = random.nextInt(w * 32);
+            int randomY = random.nextInt(h * 32);
+            if (!objectAtPosition(worldObjects, randomX * 32, randomY * 32)) {
                 boolean mayPlace = false;
-                for(int integer : tile) {
-                    if(integer == tiles[randomY][randomX]) {
+                for (int integer : tile) {
+                    if (integer == tiles[randomY][randomX]) {
                         mayPlace = true;
                         break;
                     }
                 }
-                if(mayPlace) {
+                if (mayPlace) {
                     WorldObject temp = new WorldObject(id, randomX * 32, randomY * 32);
                     worldObjects.add(temp);
                     count++;
                 }
             }
+            if (count % 1000 == 0) {
+                log(count+ " placed of id: "+id);
+            }
         }
-        System.out.println("Trees planted: "+count);
+        System.out.println("Trees planted: " + count);
     }
-    
+
     private void generateLine(int id, int x0, int y0, int x1, int y1, int size) {
         Point point1 = new Point(x0, y0);
         Point point2 = new Point(x1, y1);
         double distance = diagonalDistance(point1, point2);
         int count = 0;
         for (int step = 0; step <= distance; step++) {
-            double t = distance == 0? 0.0 : step / distance;
+            double t = distance == 0 ? 0.0 : step / distance;
             Point p = lerpPoint(point1, point2, t);
             generateSquare(id, p.getX(), p.getY(), size, size);
-            count+=size;
+            count += size;
         }
-        log("Placed aprox: "+count+" of the id: "+id);
+        log("Placed aprox: " + count + " of the id: " + id);
     }
-    
+
     private double diagonalDistance(Point p0, Point p1) {
         double dx = p1.getX() - p0.getX(), dy = p1.getY() - p1.getY();
         return Math.max(dx, dy);
     }
-    
+
     private Point lerpPoint(Point p0, Point p1, double t) {
         return new Point(lerp(p0.getX(), p1.getX(), t),
-                         lerp(p0.getY(), p1.getY(), t));
+                lerp(p0.getY(), p1.getY(), t));
     }
-    
+
     private double lerp(double start, double end, double t) {
-        return start + t * (end-start);
+        return start + t * (end - start);
     }
-    
+
     private void generateSquare(int id, int x, int y, int sizeX, int sizeY) {
-        for(int iy = 0; iy < sizeY; iy++) {
-            for(int ix = 0; ix < sizeX; ix++) {
+        for (int iy = 0; iy < sizeY; iy++) {
+            for (int ix = 0; ix < sizeX; ix++) {
                 try {
-                    tiles[iy+y][ix+x] = id;
+                    tiles[iy + y][ix + x] = id;
                 } catch (IndexOutOfBoundsException e) {
-                    
+
                 }
             }
         }

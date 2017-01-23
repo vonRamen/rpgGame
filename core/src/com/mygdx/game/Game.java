@@ -4,6 +4,7 @@ import Persistence.GUIGraphics;
 import Persistence.GameItem;
 import Persistence.Tile;
 import Persistence.GameObject;
+import Persistence.Sound2D;
 import Persistence.Weapon;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -36,7 +37,7 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void create() {
-        playerName = "Mathias";
+        playerName = "Kristian";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;

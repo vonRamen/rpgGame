@@ -20,6 +20,7 @@ public class Player extends Human {
 
     private String userName;
     private String userPassword;
+    private String path;
     private boolean hasUpdatedInventory;
 
     //alerts is used to send alert windows to gui
@@ -51,6 +52,7 @@ public class Player extends Human {
         player.userPassword = userPassword;
         player.inventory = new Inventory(28);
         player.addSkills();
+        player.path = path;
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
 
         Json json = new Json();
@@ -62,6 +64,7 @@ public class Player extends Human {
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
         Json json = new Json();
         Player player = json.fromJson(Player.class, fileHandle);
+        player.path = path;
         if (player != null) {
             if (player.userPassword.equals(userPassword)) {
                 player.uId = UUID.randomUUID().toString();
@@ -106,5 +109,14 @@ public class Player extends Human {
 
     public boolean hasUpdatedInventory() {
         return hasUpdatedInventory;
+    }
+
+    void saveProgress() {
+        FileHandle fileHandle = new FileHandle(path + userName + ".json");
+
+        Json json = new Json();
+        String string = json.toJson(this);
+        fileHandle.writeString(string, false);
+        System.out.println("Player succesfully saved: "+userName);
     }
 }

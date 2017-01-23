@@ -157,6 +157,7 @@ public class GameWorld {
             Chunk chunk = null;
             try {
                 chunk = (Chunk) iterator.next();
+                chunk.update(deltaTime);
             } catch (ConcurrentModificationException exception) {
                 System.out.println("Breaking loop...");
                 break;

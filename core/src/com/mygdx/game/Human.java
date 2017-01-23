@@ -64,7 +64,7 @@ public class Human extends Entity {
 
     public Human(GameWorld world) {
         super(world);
-        setAnimation(0, 0);
+        setAnimation("rpgMale.png", 0, state);
         inventory = new Inventory(30);
     }
 
@@ -180,7 +180,7 @@ public class Human extends Entity {
         super.initialize();
         this.boundsPattingY = 0;
         weaponSpriteReference = Weapon.get(weapon).getWeaponSprite();
-        setAnimation(0, animationDirection);
+        setAnimation("RpgMale.png", animationDirection, state);
         updateSlash();
     }
 

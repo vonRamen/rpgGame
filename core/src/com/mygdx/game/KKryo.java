@@ -62,5 +62,6 @@ public class KKryo {
         kryo.register(Persistence.DropItem.class);
         kryo.register(java.util.HashMap.class);
         kryo.register(com.mygdx.game.DroppedItem.class);
+        kryo.register(EntityState.class);
     }
 }

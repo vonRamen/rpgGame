@@ -28,6 +28,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected boolean isDead;
     protected float x;
     protected float y;
+    protected float z;
     protected float forceDir;
     protected float forceSpeed;
     protected float changeX;
@@ -43,7 +44,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected int chunkXLastOn;
     protected int chunkYLastOn;
     protected int hp;
-    protected int animationId;
+    protected String animationName;
     protected int animationDirection;
     protected String name;
     protected TextureRegion currentFrame;
@@ -55,6 +56,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected Stack<Task> tasks;
     protected ExtraCommand extraCommand = ExtraCommand.NONE;
     protected Inventory inventory;
+    protected EntityState state;
 
     public Entity(GameWorld world) {
         this.world = world;
@@ -70,6 +72,7 @@ public abstract class Entity implements Drawable, Cloneable {
         strength = 50;
         addBounds();
         this.inventory.setEntity(this);
+        this.state = EntityState.IDLE;
     }
 
     public Entity() {
@@ -85,12 +88,20 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void update(double deltaTime) {
+        //Apply state
+        if (this.getOnTile() == 0) {
+            state = EntityState.SWIMMING;
+        }
+        animationHandler();
+
+        //Reset state
+        state = EntityState.IDLE;
+
         this.animationTimer += deltaTime;
         this.deltaTime = deltaTime;
         if (animation != null) {
             currentFrame = animation.getKeyFrame(this.animationTimer, true);
         }
-        animationHandler();
         if (((changeX != 0 || changeY != 0) && isNetworkObject) || (forceSpeed != 0)) {
             move(changeX, changeY);
         }
@@ -137,6 +148,7 @@ public abstract class Entity implements Drawable, Cloneable {
         }
         isMoving = true;
         if ((change_x != 0 || change_y != 0)) {
+            this.state = EntityState.WALKING;
             float angle = (float) Math.atan2(change_y, change_x);
             float direction_x = (float) Math.cos(angle);
             float direction_y = (float) Math.sin(angle);
@@ -197,20 +209,17 @@ public abstract class Entity implements Drawable, Cloneable {
 
     public void animationHandler() {
         //animate the right animationDirection:
-        if (!isAttacking) { //Makes sure you're only able to attack one place at once.
-            if (changeX != 0 || changeY != 0) { //UP(3), DOWN(0), LEFT(1), RIGHT(2);
-                if (changeX != 0) {
-                    int horiChange = (changeX > 0) ? Direction.RIGHT.getValue() : Direction.LEFT.getValue();
-                    setAnimation(animationId, horiChange);
-                }
-                if (changeY != 0) {
-                    int verChange = (changeY > 0) ? Direction.UP.getValue() : Direction.DOWN.getValue();
-                    setAnimation(animationId, verChange);
-                }
-            } else {
-                setIdle(animationId);
-            }
+        int verChange = 0;
+        int horiChange = 0;
+        int value = this.animationDirection;
+
+        if (changeX != 0) {
+            value = (changeX > 0) ? Direction.RIGHT.getValue() : Direction.LEFT.getValue();
         }
+        if (changeY != 0) {
+            value = (changeY > 0) ? Direction.UP.getValue() : Direction.DOWN.getValue();
+        }
+        setAnimation(animationName, value, state);
     }
 
     public void addPush(float direction, float power) {
@@ -246,15 +255,31 @@ public abstract class Entity implements Drawable, Cloneable {
         bounds.y = y + boundsPattingY;
     }
 
-    public void setAnimation(int id, int dir) {
+    public void setAnimation(String animationName, int dir, EntityState state) {
         animationDirection = dir;
-        animation = KAnimation.getAnimation(id).getDirectionalAnimation(dir);
-        animationId = id;
+        switch (state) {
+            case WALKING:
+                animation = KAnimation.getAnimation(animationName).getDirectionalAnimation(dir);
+                break;
+
+            case SWIMMING:
+                animation = KAnimation.getAnimation(animationName).getUnderWaterAnimation(dir);
+                break;
+
+            case IDLE:
+                animation = KAnimation.getAnimation(animationName).getIdleAnimation(dir);
+                break;
+
+            default:
+
+                break;
+        }
+        this.animationName = animationName;
         currentFrame = animation.getKeyFrame(animationTimer, true);
     }
 
-    public void setIdle(int id) {
-        animation = KAnimation.getAnimation(id).getIdleAnimation(animationDirection);
+    public void setIdle(String animationName) {
+        animation = KAnimation.getAnimation(animationName).getIdleAnimation(animationDirection);
     }
 
     public void setWorld(GameWorld world) {
@@ -265,9 +290,9 @@ public abstract class Entity implements Drawable, Cloneable {
     public void draw() {
         if (animation != null) {
             Game.batch.setColor(0, 0, 0, 0.4f);
-            Game.batch.draw(currentFrame, x, y - 4);
+            Game.batch.draw(currentFrame, x, y - 4 + z);
             Game.batch.setColor(Color.WHITE);
-            Game.batch.draw(currentFrame, x, y);
+            Game.batch.draw(currentFrame, x, y + z);
         }
     }
 
@@ -358,7 +383,7 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void pickup() {
-        if(this.inventory == null) {
+        if (this.inventory == null) {
             return;
         }
         for (DroppedItem item : world.getDroppedItems()) {
@@ -368,7 +393,27 @@ public abstract class Entity implements Drawable, Cloneable {
             }
         }
     }
-    
+
+    /**
+     * Returns the id of the tile, this entity is standing on.
+     *
+     * @return
+     */
+    public int getOnTile() {
+        Chunk currentChunk = this.world.getChunk(this.chunkX, this.chunkY);
+        float relativeX = (this.x - (chunkX * 32 * 32));
+        float relativeY = (this.y - (chunkY * 32 * 32));
+
+        int tileX = (int) relativeX / 32;
+        int tileY = (int) relativeY / 32;
+
+        if (currentChunk == null || tileX == -1 || tileY == -1 || tileX > 31 || tileY > 31) {
+            return -1;
+        }
+
+        return currentChunk.getTiles()[tileY][tileX];
+    }
+
     @Override
     public boolean isFlaggedForRemoval() {
         return toBeRemoved;

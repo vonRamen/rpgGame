@@ -36,6 +36,7 @@ public class Chunk implements Runnable {
     private String uId;
     private String controlledClient;
     private boolean toBeRemoved;
+    private double deltaTime;
 
     public Chunk(int x, int y, ArrayList<Drawable> drawable) {
         this.drawable = drawable;
@@ -64,6 +65,10 @@ public class Chunk implements Runnable {
         return chunk;
     }
 
+    public void update(double deltaTime) {
+        this.deltaTime += deltaTime;
+    }
+    
     public String getUId() {
         return uId;
     }
@@ -80,7 +85,7 @@ public class Chunk implements Runnable {
         for (int yy = 0; yy < getTiles().length; yy++) {
             for (int xx = 0; xx < getTiles().length; xx++) {
                 if (getTiles()[yy][xx] != -1) {
-                    Game.batch.draw(Tile.get(getTiles()[yy][xx]), (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                    Tile.get(getTiles()[yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
                 }
             }
         }

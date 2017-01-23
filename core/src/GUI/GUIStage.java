@@ -105,7 +105,7 @@ public class GUIStage extends Stage {
         if (keycode == Input.Keys.Q) {
             combatMode = !combatMode;
         }
-        if (keycode == Input.Keys.D) {
+        if (keycode == Input.Keys.P) {
             this.isDrawing = !this.isDrawing;
             System.out.println("Drawing off.");
         }

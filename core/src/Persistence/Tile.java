@@ -5,15 +5,20 @@
  */
 package Persistence;
 
+import static Persistence.GameItem.path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Json;
+import com.mygdx.game.Game;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.logging.FileHandler;
 
 /**
@@ -22,14 +27,32 @@ import java.util.logging.FileHandler;
  */
 public class Tile {
 
-    private static String path = "tiles/standardTileSet.png";
+    private static String path = "tiles/";
     private static ArrayList<TextureRegion> sprites = new ArrayList();
+    private static TreeMap<Integer, Tile> tiles;
+    private Animation spriteAnimation;
+    private ArrayList<Integer> animationIds;
+    private float animationSpeed;
+    private int id;
+    private float currentFrame;
 
     public Tile() {
     }
+    
+    public void initialize() {
+        TextureRegion[] sprites = new TextureRegion[animationIds.size()];
+        int count = 0;
+        for(Integer integer : animationIds) {
+            sprites[count] = Tile.sprites.get(integer);
+            count++;
+        }
+        spriteAnimation = new Animation(animationSpeed, sprites);
+        spriteAnimation.setPlayMode(Animation.PlayMode.LOOP);
+    }
 
     public static void load() {
-        Texture texture = new Texture(path);
+        Texture texture = new Texture(path+"standardTileSet.png");
+        tiles = new TreeMap();
         int xx = (int) (texture.getWidth() / 32);
         int yy = (int) (texture.getHeight() / 32);
 
@@ -38,6 +61,16 @@ public class Tile {
                 TextureRegion textureR = new TextureRegion(texture, ix * 32, iy * 32, 32, 32);
                 sprites.add(textureR);
             }
+        }
+        
+        //Load data from data folder
+        FileHandle dirHandle = Gdx.files.internal(path+"data/");
+        System.out.println("Files in data: "+dirHandle.list().length);
+        Json json = new Json();
+        for(FileHandle file : dirHandle.list()) {
+            Tile tile = json.fromJson(Tile.class, file);
+            tile.initialize();
+            tiles.put(tile.id, tile);
         }
     }
 
@@ -65,11 +98,15 @@ public class Tile {
         return fileH.file();
     }
 
-    public static TextureRegion get(int id) {
+    public static TextureRegion getTextureRegionBySpace(int id) {
         if (sprites.isEmpty()) {
             load();
         }
         return sprites.get(id);
+    }
+    
+    public static Tile get(int id) {
+        return tiles.get(id);
     }
 
     public static int getSize() {
@@ -78,5 +115,9 @@ public class Tile {
 
     public static String getPath() {
         return path;
+    }
+    
+    public void draw(float deltaTime, int x, int y) {
+        Game.batch.draw(spriteAnimation.getKeyFrame(deltaTime), x, y);
     }
 }

@@ -55,6 +55,7 @@ public class ServerListener extends Listener {
         }
         if (object instanceof Packets.RequestAccess) {
             Packets.RequestAccess obj = (Packets.RequestAccess) object;
+            
             Player player = null;
             player = Player.get(fullPath + "players/", obj.name, obj.password);
 
@@ -156,6 +157,7 @@ public class ServerListener extends Listener {
 
     public void removeClient(Connection connection) {
         Player player = playerToConnection.get(connection);
+        player.saveProgress();
         isRecurring = false;
         //Disable editing on all of the other.
         for (Chunk chunk : world.getChunks()) {
