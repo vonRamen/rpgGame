@@ -5,12 +5,14 @@
  */
 package GUI;
 
+import Persistence.Sound2D;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -59,11 +61,12 @@ public class GUIStage extends Stage {
         this.addActor(rightClickMenu);
         toggleInventory();
         Gdx.input.setInputProcessor(multiPlexer);
-
+        this.camera = (OrthographicCamera) this.getViewport().getCamera();
         //this.addActor(new MainGUI(skin));
     }
 
     public void act() {
+        this.camera = (OrthographicCamera) this.getViewport().getCamera();
         super.act();
         worldClickHandler.update();
         if (isDrawing) {
@@ -72,12 +75,14 @@ public class GUIStage extends Stage {
             this.inventory.update();
             player.setInventoryUpdate(false);
         }
+        inventory.getGroup().setPosition(camera.position.x, camera.position.y);
     }
 
     public void toggleInventory() {
         if (player != null && inventory == null) {
             inventory = new GUIInventory(player, skin, rightClickMenu);
-            this.addActor(inventory.getGroup());
+            Group invGroup = inventory.getGroup();
+            this.addActor(invGroup);
         } else {
             inventory.toggleVisibility();
             if (this.getActors().size < 1) {
@@ -93,6 +98,9 @@ public class GUIStage extends Stage {
     @Override
     public boolean keyDown(int keycode) {
         super.keyDown(keycode);
+        if (keycode == Input.Keys.D || keycode == Input.Keys.W || keycode == Input.Keys.A || keycode == Input.Keys.S) {
+            rightClickMenu.clear();
+        }
         return true;
     }
 
@@ -114,6 +122,9 @@ public class GUIStage extends Stage {
                 this.player.pickup();
                 this.inventory.update();
             }
+        }
+        if (keycode == Input.Keys.M) {
+            Sound2D.playMusic("What about this.mp3");
         }
         return true;
     }
@@ -158,6 +169,7 @@ public class GUIStage extends Stage {
                 break;
         }
         System.out.println(player.getAlert());
+        this.rightClickMenu.setPosition(this.rightClickMenu.getX() + camera.position.x - this.getViewport().getScreenWidth() / 2, this.rightClickMenu.getY() + camera.position.y - this.getViewport().getScreenHeight() / 2);
         return true;
     }
 

@@ -38,6 +38,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected float boundsPattingY = 2;
     protected float animationTimer;
     protected float speed;
+    protected float alpha;
     protected double deltaTime;
     protected int chunkX; //The position of the chunk currently on
     protected int chunkY;
@@ -88,11 +89,8 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void update(double deltaTime) {
-        //Apply state
-        if (this.getOnTile() == 0) {
-            state = EntityState.SWIMMING;
-        }
         animationHandler();
+        
 
         //Reset state
         state = EntityState.IDLE;
@@ -104,6 +102,18 @@ public abstract class Entity implements Drawable, Cloneable {
         }
         if (((changeX != 0 || changeY != 0) && isNetworkObject) || (forceSpeed != 0)) {
             move(changeX, changeY);
+        }
+        
+        //Apply state
+        if (this.getOnTile() == 0) {
+            state = EntityState.SWIMMING;
+        }
+        
+        //Spawn alpha
+        if(this.alpha < 1) {
+            this.alpha+=deltaTime;
+        } else if(this.alpha > 1) {
+            this.alpha = 1;
         }
     }
 
@@ -259,19 +269,20 @@ public abstract class Entity implements Drawable, Cloneable {
         animationDirection = dir;
         switch (state) {
             case WALKING:
-                animation = KAnimation.getAnimation(animationName).getDirectionalAnimation(dir);
+                animation = AnimationGroup.getAnimation(animationName).getDirectionalAnimation(dir);
                 break;
 
             case SWIMMING:
-                animation = KAnimation.getAnimation(animationName).getUnderWaterAnimation(dir);
+                animation = AnimationGroup.getAnimation(animationName).getUnderWaterAnimation(dir);
                 break;
 
             case IDLE:
-                animation = KAnimation.getAnimation(animationName).getIdleAnimation(dir);
+                animation = AnimationGroup.getAnimation(animationName).getIdleAnimation(dir);
                 break;
 
             default:
-
+                int index = EntityState.getIndex(state);
+                animation = AnimationGroup.getAnimation(animationName).get(index, dir);
                 break;
         }
         this.animationName = animationName;
@@ -279,7 +290,7 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void setIdle(String animationName) {
-        animation = KAnimation.getAnimation(animationName).getIdleAnimation(animationDirection);
+        animation = AnimationGroup.getAnimation(animationName).getIdleAnimation(animationDirection);
     }
 
     public void setWorld(GameWorld world) {
@@ -289,9 +300,12 @@ public abstract class Entity implements Drawable, Cloneable {
     @Override
     public void draw() {
         if (animation != null) {
-            Game.batch.setColor(0, 0, 0, 0.4f);
-            Game.batch.draw(currentFrame, x, y - 4 + z);
-            Game.batch.setColor(Color.WHITE);
+            float shadowAlpha = 0.4f - (1-this.alpha);
+            if(shadowAlpha < 0)
+                shadowAlpha = 0;
+            Game.batch.setColor(0, 0, 0, shadowAlpha);
+            Game.batch.draw(currentFrame, x, y - 4);
+            Game.batch.setColor(1, 1, 1, this.alpha);
             Game.batch.draw(currentFrame, x, y + z);
         }
     }
@@ -393,6 +407,18 @@ public abstract class Entity implements Drawable, Cloneable {
             }
         }
     }
+    
+    public boolean solidAtLocation(int x, int y) {
+        Rectangle rect = new Rectangle(x, y, 32, 32);
+        int chunkX = (int) x / (32 * 32);
+        int chunkY = (int) y / (32 * 32);
+        int localX = (int) (x % (32*32));
+        int localY = (int) (y % (32*32));
+        int tileX = (int) (localX / 32);
+        int tileY = (int) (localY / 32);
+        Chunk chunk = world.getChunk(chunkX, chunkY);
+        return chunk.solidAt(tileX, tileY);
+    }
 
     /**
      * Returns the id of the tile, this entity is standing on.
@@ -401,13 +427,13 @@ public abstract class Entity implements Drawable, Cloneable {
      */
     public int getOnTile() {
         Chunk currentChunk = this.world.getChunk(this.chunkX, this.chunkY);
-        float relativeX = (this.x - (chunkX * 32 * 32));
+        float relativeX = (this.x - (chunkX * 32 * 32))+16;
         float relativeY = (this.y - (chunkY * 32 * 32));
 
         int tileX = (int) relativeX / 32;
         int tileY = (int) relativeY / 32;
 
-        if (currentChunk == null || tileX == -1 || tileY == -1 || tileX > 31 || tileY > 31) {
+        if (currentChunk == null || tileX < 0 || tileY < 0|| tileX > 31 || tileY > 31) {
             return -1;
         }
 

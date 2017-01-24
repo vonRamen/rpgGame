@@ -47,7 +47,7 @@ public class KKryo {
         kryo.register(Job.class);
         kryo.register(Task.class);
         kryo.register(Stack.class);
-        kryo.register(KAnimation.class);
+        kryo.register(AnimationGroup.class);
         kryo.register(Animation[].class);
         kryo.register(TextureRegion[].class);
         kryo.register(TextureRegion.class);

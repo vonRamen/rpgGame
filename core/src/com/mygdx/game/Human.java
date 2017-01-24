@@ -7,6 +7,8 @@ package com.mygdx.game;
 
 import Persistence.Action;
 import Persistence.Weapon;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -27,7 +29,11 @@ public class Human extends Entity {
     protected int middleX = 16;
     protected int middleY = 16;
     protected int skin; //skin color
-    protected int hair; //hair color
+    protected int hair; //hair
+    protected float hairColorRed;
+    protected float hairColorBlue;
+    protected float hairColorGreen;
+    protected Animation hairAnimation;
     protected int head; //head equipment
     protected int body; //body equipment
     protected int legs; //legs equipment
@@ -39,6 +45,7 @@ public class Human extends Entity {
     protected int weaponPosY;
     private EntityAction currentAction;
     private float actionDuration;
+    private PathFinder pathFinder;
 
     public Human() {
         super();
@@ -64,13 +71,41 @@ public class Human extends Entity {
 
     public Human(GameWorld world) {
         super(world);
-        setAnimation("rpgMale.png", 0, state);
+        setAnimation("male_01", 0, state);
         inventory = new Inventory(30);
+    }
+
+    @Override
+    public void setAnimation(String animationName, int direction, EntityState state) {
+        super.setAnimation(animationName, direction, state);
+
+        if (AnimationGroup.getAnimation(hair, 1) != null) {
+            switch (state) {
+                case WALKING:
+                    hairAnimation = AnimationGroup.getAnimation(hair, 1).getDirectionalAnimation(direction);
+                    break;
+
+                case SWIMMING:
+                    hairAnimation = AnimationGroup.getAnimation(hair, 1).getUnderWaterAnimation(direction);
+                    break;
+
+                case IDLE:
+                    hairAnimation = AnimationGroup.getAnimation(hair, 1).getIdleAnimation(direction);
+                    break;
+
+                default:
+
+                    break;
+            }
+        }
     }
 
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
+        if(pathFinder!=null) {
+            pathFinder.update();
+        }
 
         //Update actions:
         //fx mining, smithing..
@@ -178,9 +213,13 @@ public class Human extends Entity {
     @Override
     public void initialize() {
         super.initialize();
+        this.hair = 1;
+        this.hairColorBlue = 0.6f;
+        this.hairColorGreen = 0.6f;
+        this.hairColorRed = 0.6f;
         this.boundsPattingY = 0;
         weaponSpriteReference = Weapon.get(weapon).getWeaponSprite();
-        setAnimation("RpgMale.png", animationDirection, state);
+        setAnimation("male_01", animationDirection, state);
         updateSlash();
     }
 
@@ -192,10 +231,15 @@ public class Human extends Entity {
         }
 
         super.draw();
+        //Draw Hair
+        if (hairAnimation != null) {
+            Game.batch.setColor(hairColorRed, hairColorGreen, hairColorBlue, this.alpha);
+            Game.batch.draw(hairAnimation.getKeyFrame(this.animationTimer, true), x, y + z);
 
-        //draw weapon in front of human if attacking down
-        if (isAttacking && animationDirection != Direction.UP.getValue()) {
-            Game.batch.draw(weaponSpriteReference, weaponSpriteReference.getX(), weaponSpriteReference.getY(), weaponSpriteReference.getOriginX(), weaponSpriteReference.getOriginY(), weaponSpriteReference.getWidth(), weaponSpriteReference.getHeight(), 1, 1, weaponSpriteReference.getRotation());
+            //draw weapon in front of human if attacking down
+            if (isAttacking && animationDirection != Direction.UP.getValue()) {
+                Game.batch.draw(weaponSpriteReference, weaponSpriteReference.getX(), weaponSpriteReference.getY(), weaponSpriteReference.getOriginX(), weaponSpriteReference.getOriginY(), weaponSpriteReference.getWidth(), weaponSpriteReference.getHeight(), 1, 1, weaponSpriteReference.getRotation());
+            }
         }
     }
 
@@ -209,6 +253,7 @@ public class Human extends Entity {
         currentAction = null;
         weaponSpriteReference = null;
         this.inventory.prepareSend();
+        this.hairAnimation = null;
     }
 
     public void updateSlash() {
@@ -267,6 +312,9 @@ public class Human extends Entity {
     }
 
     public void setAction(EntityAction action) {
+        if (currentAction != null) {
+            currentAction.cancel();
+        }
         currentAction = action;
     }
 
@@ -283,5 +331,9 @@ public class Human extends Entity {
     public void setActionDuration(float actionDuration) {
         this.actionDuration = actionDuration;
     }
-    
+
+    public void setPath(int x, int y) {
+        //System.out.println("Path x: "+x +" Path y: "+y);
+        this.pathFinder = new PathFinder(this, this.x, this.y, x, y);
+    }
 }

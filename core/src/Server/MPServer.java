@@ -43,7 +43,7 @@ public class MPServer {
     public MPServer(int port) {
         worldName = "name";
         extraPath = "assets/worlds/"+worldName+"/";
-        //WorldGenerator.generateWorld("assets/", 100, 100);
+        //WorldGenerator.generateWorld("assets/", 10, 10);
         world = new GameWorld(true, extraPath, null);
         //Player.generate(extraPath+"players/", "Kristian", "ubv59mve");
         this.port = port;

@@ -30,7 +30,8 @@ public class Chunk implements Runnable {
     }
     private int x, y; //*32 *32
     private int[][] tiles;
-
+    private int[][] collisionGrid;
+ 
     private ArrayList<WorldObject> worldObjects;
     private ArrayList<Drawable> drawable;
     private String uId;
@@ -211,5 +212,20 @@ public class Chunk implements Runnable {
     
     public boolean isFlaggedForRemoval() {
         return toBeRemoved;
+    }
+    
+    public int[][] getCollisionGrid() {
+        if(collisionGrid == null) {
+            collisionGrid = new int[32][32];
+            for(WorldObject object : worldObjects) {
+                collisionGrid[(int) (object.getX() - this.x*32*32) / 32][(int) (object.getY()- this.y*32*32) / 32] = 1;
+            }
+        }
+        return collisionGrid;
+    }
+    
+    public boolean solidAt(int x, int y) {
+        int[][] grid = getCollisionGrid();
+        return grid[y][x] == 1;
     }
 }

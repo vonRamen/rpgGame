@@ -117,6 +117,10 @@ public class PlayerController { //This class handles all the controls from the p
             stage.act();
         }
     }
+    
+    public Stage getStage() {
+        return this.stage;
+    }
 
     public void setWorld(GameWorld world) {
         this.world = world;

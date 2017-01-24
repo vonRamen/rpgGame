@@ -87,7 +87,6 @@ public class GUIInventory {
         label.setPosition(handleBar.getX()+handleBar.getWidth()/2 - label.getWidth()/2, 0);
         root.addActor(handleBar);
         root.addActor(table);
-        root.setPosition(200, 400);
         root.setZIndex(0);
     }
 }

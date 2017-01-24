@@ -7,6 +7,7 @@ package com.mygdx.game;
 
 import Persistence.GameItem;
 import Persistence.GameObject;
+import Persistence.Sound2D;
 import Server.WorldSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -72,6 +73,7 @@ public class GameWorld {
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
             objectsToBeAdded = new ArrayList();
+            Sound2D.playMusic("Deep Forest.ogg");
 //            player = Player.create(this, 0, 0);
             //addEntity(new Human(this));
         }
@@ -109,6 +111,11 @@ public class GameWorld {
         DroppedItem newItem = new DroppedItem(id, count, this, x, y);
         getDroppedItems().add(newItem);
     }
+    
+    public void spawnMob(int id, int x, int y) {
+        Mob mob = new Mob(id, x, y);
+        addEntity(mob);
+    }
 
     public Entity addEntity(Entity entity) {
         entities.add(entity);
@@ -123,6 +130,9 @@ public class GameWorld {
     }
 
     public void update() {
+        //update music fadeout and such..
+        Sound2D.updateMusic(deltaTime);
+        
         //if a gui hasn't been set up - set it up:
         if (playerController != null) {
             if (!playerController.hasGUI()) {

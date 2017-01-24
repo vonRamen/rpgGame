@@ -84,6 +84,7 @@ public class WorldClickHandler {
                 drawable.getActions().get(0).initializeExecution(player, drawable);
             }
         }
+        player.getWorld().spawnMob(0, this.getWorldPositionX(x), this.getWorldPositionY(y));
     }
 
     public void update() {

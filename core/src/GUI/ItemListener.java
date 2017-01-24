@@ -66,6 +66,7 @@ public class ItemListener extends ClickListener {
         dropAction.setSlotId(slotId);
         actionButton.addListener(new ActionClickListener(player, slotId, dropAction));
         table.add(actionButton);
+        table.setZIndex(10);
         //Make all the buttons the same width based on the largest if size > 1
         if (table.getChildren().size > 1) {
             for (Actor actor : table.getChildren()) {

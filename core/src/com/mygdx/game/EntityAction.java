@@ -35,4 +35,8 @@ public class EntityAction {
     public boolean isDone() {
         return done;
     }
+
+    void cancel() {
+        action.cancel();
+    }
 }

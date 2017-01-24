@@ -112,11 +112,11 @@ public class Action {
         if (maxDistance != 0) {
             Vector2 humanPos = new Vector2(human.getX(), human.getY());
             if (humanPos.dst2(object.getX(), object.getY()) > maxDistance) {
-                    if (human instanceof Player) {
-                        System.out.println(humanPos.dst2(object.getX(), object.getY()));
-                        Player player = (Player) human;
-                        player.addAlert("Not close enough to perform action!");
-                    }
+                if (human instanceof Player) {
+                    System.out.println(humanPos.dst2(object.getX(), object.getY()));
+                    Player player = (Player) human;
+                    player.addAlert("Not close enough to perform action!");
+                }
                 return false;
             }
         }
@@ -162,6 +162,8 @@ public class Action {
         }
         if (canExecute(human, object)) {
             if (this.soundEffect != null) {
+                if(activeSound!=null)
+                    activeSound.stop();
                 activeSound = new Sound2D(this.soundEffect);
                 Player player = human.getWorld().getPlayer();
                 activeSound.play(human.getWorld().getPlayer(), human, soundIsLooping);
@@ -182,5 +184,11 @@ public class Action {
 
     public void setSlotId(int slotId) {
         this.slotId = slotId;
+    }
+
+    public void cancel() {
+        if (this.activeSound != null) {
+            this.activeSound.stop();
+        }
     }
 }

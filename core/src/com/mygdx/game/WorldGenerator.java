@@ -7,7 +7,6 @@ package com.mygdx.game;
 
 import Persistence.GameObject;
 import Persistence.NoiseGenerator;
-import Server.Point;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Json;
 import java.util.ArrayList;
@@ -140,7 +139,7 @@ public class WorldGenerator extends Thread {
             System.out.println(posX);
 
             WorldObject newObject = null;
-            boolean o = objectAtPosition(objectsList, posX * 32, posY * 32);
+            boolean o = objectAtPosition(posX * 32, posY * 32);
             if (o == true) {
                 i--;
             } else {
@@ -162,7 +161,7 @@ public class WorldGenerator extends Thread {
         while (count < maxObjects) {
             int randomX = random.nextInt(w * 32);
             int randomY = random.nextInt(h * 32);
-            if (!objectAtPosition(worldObjects, randomX * 32, randomY * 32)) {
+            if (!objectAtPosition(randomX * 32, randomY * 32)) {
                 boolean mayPlace = false;
                 for (int integer : tile) {
                     if (integer == tiles[randomY][randomX]) {
@@ -223,8 +222,8 @@ public class WorldGenerator extends Thread {
         }
     }
 
-    private static boolean objectAtPosition(ArrayList<WorldObject> objectsList, int x, int y) {
-        for (WorldObject object : objectsList) {
+    private boolean objectAtPosition(int x, int y) {
+        for (WorldObject object : worldObjects) {
             if (object.x == x && object.y == y) {
                 return true;
             }
@@ -247,8 +246,8 @@ public class WorldGenerator extends Thread {
 
                 //set objects
                 for (WorldObject worldObject : worldObjects) {
-                    if (worldObject.x >= x * 32 * 32 && worldObject.x <= (x + 1) * 32 * 32
-                            && worldObject.y >= y * 32 * 32 && worldObject.y <= (y + 1) * 32 * 32) {
+                    if (((int) worldObject.x / (32 * 32)) == x &&
+                            ((int) worldObject.y / (32 * 32) == y)) {
                         worldObject.rectangle = null;
                         worldObject.uId = null;
                         chunk.addObject(worldObject);

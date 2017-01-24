@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import Persistence.GUIGraphics;
+import Persistence.GameEntity;
 import Persistence.GameItem;
 import Persistence.Tile;
 import Persistence.GameObject;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,24 +35,33 @@ public class Game extends ApplicationAdapter {
     private String playerName;
     private String playerPassword;
     private PlayerController playerController;
+    private boolean hasSetViewPort;
     public static boolean isDebug;
+    private ScreenViewport viewPort;
 
     @Override
     public void create() {
-        playerName = "Kristian";
+        playerName = "Mathias";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;
         isDebug = false;
         GameItem.load();
-        KAnimation.load();
+        AnimationGroup.load();
         GameObject.loadObjects();
         Tile.load();
         Weapon.load();
         GUIGraphics.load();
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        FitViewport viewPort = new FitViewport(0, 0, camera);
+        GameEntity.load();
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
+            public float getX() {
+                return position.x;
+            }
+            public float getY() {
+                return position.y;
+            }
+        };
+        viewPort = new ScreenViewport(camera);
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
@@ -67,10 +78,10 @@ public class Game extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (world.getPlayer() != null) {
-            if (world.getPlayer().getX() + 32 / 2-camera.viewportWidth/2 > 0 && world.getPlayer().getX() + 32 / 2 + camera.viewportWidth/2 < world.getSizeX()) {
+            if (world.getPlayer().getX() + 32 / 2 - camera.viewportWidth / 2 > 0 && world.getPlayer().getX() + 32 / 2 + camera.viewportWidth / 2 < world.getSizeX()) {
                 camera.position.x = world.getPlayer().getX() + 32 / 2;
             }
-            if( world.getPlayer().getY() + 32 / 2 - camera.viewportHeight/2> 0 && world.getPlayer().getY() + 32 / 2 + camera.viewportHeight / 2 < world.getSizeY()) {
+            if (world.getPlayer().getY() + 32 / 2 - camera.viewportHeight / 2 > 0 && world.getPlayer().getY() + 32 / 2 + camera.viewportHeight / 2 < world.getSizeY()) {
                 camera.position.y = world.getPlayer().getY() + 32 / 2;
             }
         }
@@ -116,6 +127,18 @@ public class Game extends ApplicationAdapter {
         batch.dispose();
         if (playerController != null) {
             playerController.dispose();
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        if (world.getPlayerController() != null) {
+            if(!hasSetViewPort) {
+                world.getPlayerController().getStage().setViewport(this.viewPort);
+                hasSetViewPort = true;
+            }
+            camera.setToOrtho(false, width, height);
+            world.getPlayerController().getStage().getViewport().update(width, height, true);
         }
     }
 }
