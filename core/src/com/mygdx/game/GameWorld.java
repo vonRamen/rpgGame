@@ -19,6 +19,7 @@ import com.esotericsoftware.kryonet.Client;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -40,8 +41,8 @@ public class GameWorld {
     private ArrayList<Drawable> drawOrder;
     private ArrayList<DroppedItem> droppedItems;
     private ArrayList<Object> objectsToBeAdded; //This list is going to solve the sync problem..
+    private HashMap<String, Town> towns;
     private DepthComparator depthComparator;
-    private PlayerController playerController;
     private OrthographicCamera camera;
     private Player player;
     private String path;
@@ -50,10 +51,11 @@ public class GameWorld {
 
     public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
         this.camera = camera;
-        entities = new ArrayList();
-        chunks = new ArrayList();
-        drawOrder = new ArrayList();
-        droppedItems = new ArrayList();
+        this.entities = new ArrayList();
+        this.chunks = new ArrayList();
+        this.drawOrder = new ArrayList();
+        this.droppedItems = new ArrayList();
+        this.towns = new HashMap();
         size = 5;
         fieldOfView = 1;
         if (isServer) {
@@ -73,7 +75,6 @@ public class GameWorld {
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
             objectsToBeAdded = new ArrayList();
-            Sound2D.playMusic("Deep Forest.ogg");
 //            player = Player.create(this, 0, 0);
             //addEntity(new Human(this));
         }
@@ -87,11 +88,9 @@ public class GameWorld {
     }
 
     public void updateRemoval(int chunkX, int chunkY) {
-        for(Chunk chunk : this.chunks) {
+        for (Chunk chunk : this.chunks) {
             double distanceBetweenX = Math.abs(chunk.getX() - chunkX);
             double distanceBetweenY = Math.abs(chunk.getY() - chunkY);
-            System.out.println("Player Chunk X & Y: " + chunkX + " " + chunkY);
-            System.out.println("Distance Compared X & Y: " + distanceBetweenX + " " + distanceBetweenY);
             if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
                 ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
                 chunk.flagObjectsForRemoval();
@@ -101,20 +100,23 @@ public class GameWorld {
 
     public void setPlayer(Player player) {
         WorldObject.setClient(this.getClient());
-        playerController = new PlayerController(client, player, camera);
-        playerController.setWorld(this);
         this.player = player;
         addEntity(player);
+        Town town = new Town(this, 0, 0, 32, 32);
+        this.towns.put(town.getuId(), town);
+        town.initialize();
+        town.addOwner(player.getUId());
+        town.sendUpdate();
     }
 
     public void spawnItem(int id, int count, int x, int y) {
         DroppedItem newItem = new DroppedItem(id, count, this, x, y);
         getDroppedItems().add(newItem);
     }
-    
+
     public void spawnMob(int id, int x, int y) {
         Mob mob = new Mob(id, x, y);
-        addEntity(mob);
+        this.objectsToBeAdded.add(mob);
     }
 
     public Entity addEntity(Entity entity) {
@@ -132,14 +134,6 @@ public class GameWorld {
     public void update() {
         //update music fadeout and such..
         Sound2D.updateMusic(deltaTime);
-        
-        //if a gui hasn't been set up - set it up:
-        if (playerController != null) {
-            if (!playerController.hasGUI()) {
-                playerController.startGUI();
-            }
-            playerController.update();
-        }
 
         deltaTime = Gdx.graphics.getDeltaTime();
         updateEntities();
@@ -196,9 +190,9 @@ public class GameWorld {
             //remove chunk if flagged
         }
         Iterator deleteChunkIterator = chunks.iterator();
-        while(deleteChunkIterator.hasNext()) {
+        while (deleteChunkIterator.hasNext()) {
             Chunk c = (Chunk) deleteChunkIterator.next();
-            if(c.isFlaggedForRemoval()) {
+            if (c.isFlaggedForRemoval()) {
                 deleteChunkIterator.remove();
             }
         }
@@ -219,7 +213,7 @@ public class GameWorld {
     }
 
     public void updateEntities() {
-        for(Entity entity : entities) {
+        for (Entity entity : entities) {
             entity.update(deltaTime);
         }
     }
@@ -332,10 +326,6 @@ public class GameWorld {
         return player;
     }
 
-    public PlayerController getPlayerController() {
-        return playerController;
-    }
-
     void applySettings(WorldSettings settings) {
         sizeX = settings.getWorldSizeX();
         sizeY = settings.getWorldSizeY();
@@ -383,11 +373,13 @@ public class GameWorld {
                     Iterator it = chunk.getWorldObjects().iterator();
                     while (it.hasNext()) {
                         WorldObject worldO = (WorldObject) it.next();
+                        worldO.setWorld(this);
                         getDrawable().add(worldO);
                     }
                 }
                 if (o instanceof WorldObject) {
                     ((WorldObject) o).initialize();
+                    ((WorldObject) o).setWorld(this);
                     this.updateWorldObject((WorldObject) o);
                 }
                 if (o instanceof DroppedItem) {
@@ -397,8 +389,12 @@ public class GameWorld {
                 }
                 if (o instanceof Entity) {
                     Entity entity = (Entity) o;
-                    this.entities.add(entity);
-                    drawOrder.add(entity);
+                    addEntity(entity);
+                    //drawOrder.add(entity);
+                }
+                if (o instanceof Town) {
+                    Town town = (Town) o;
+                    this.updateTown(town);
                 }
             }
             objectsToBeAdded.clear();
@@ -412,5 +408,20 @@ public class GameWorld {
      */
     public void setClient(Client client) {
         this.client = client;
+    }
+
+    public double getDeltaTime() {
+        return deltaTime;
+    }
+
+    public void updateTown(Town town) {
+        towns.put(town.getuId(), town);
+        if (this.client != null) {
+            town.initialize();
+        }
+    }
+
+    public HashMap<String, Town> getTowns() {
+        return this.towns;
     }
 }

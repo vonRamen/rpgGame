@@ -41,7 +41,7 @@ public class Skill {
         for (int lvl = 99; lvl > 0; lvl--) {
             totalNeededExp += (int) (scale * Math.sqrt(lvl));
         }
-        System.out.println("Prototype Exp needed: " + calculateExpNeeded(99));
+        System.out.println("Prototype Exp needed: " + calculateExpNeeded(level));
         //Calculate level.
         if (totalNeededExp < exp) {
             level++;

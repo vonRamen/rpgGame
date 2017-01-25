@@ -100,5 +100,9 @@ public class ClientListener extends Listener {
             DroppedItem item = (DroppedItem) object;
             world.addObjectToBeAdded(item);
         }
+        if (object instanceof Town) {
+            Town town = (Town) object;
+            world.addObjectToBeAdded(town);
+        }
     }
 }

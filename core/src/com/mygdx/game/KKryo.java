@@ -63,5 +63,7 @@ public class KKryo {
         kryo.register(java.util.HashMap.class);
         kryo.register(com.mygdx.game.DroppedItem.class);
         kryo.register(EntityState.class);
+        kryo.register(Town.class);
+        kryo.register(Property.class);
     }
 }

@@ -1,5 +1,7 @@
 package com.mygdx.game;
 
+import GUI.GUIStage;
+import GUI.MenuStage;
 import Persistence.GUIGraphics;
 import Persistence.GameEntity;
 import Persistence.GameItem;
@@ -14,6 +16,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.logging.Level;
@@ -38,6 +41,7 @@ public class Game extends ApplicationAdapter {
     private boolean hasSetViewPort;
     public static boolean isDebug;
     private ScreenViewport viewPort;
+    private Stage stage;
 
     @Override
     public void create() {
@@ -57,6 +61,7 @@ public class Game extends ApplicationAdapter {
             public float getX() {
                 return position.x;
             }
+
             public float getY() {
                 return position.y;
             }
@@ -69,6 +74,8 @@ public class Game extends ApplicationAdapter {
         world = new GameWorld(false, "", camera);
         client = new MPClient(7777, world, playerName, playerPassword);
         world.setClient(client.getClient());
+        stage = new GUIStage(world, camera, null, client.getClient());
+        //stage = new MenuStage(camera);
         //Chunk.makeSample();
     }
 
@@ -95,12 +102,8 @@ public class Game extends ApplicationAdapter {
             default:
                 break;
         }
+        stage.draw();
         batch.end();
-        if (playerController == null) {
-            playerController = world.getPlayerController();
-        } else {
-            playerController.draw();
-        }
         shapeRenderer.begin();
         shapeRenderer.set(ShapeRenderer.ShapeType.Line);
         world.drawDebug();
@@ -120,6 +123,7 @@ public class Game extends ApplicationAdapter {
             default:
                 break;
         }
+        stage.act();
     }
 
     @Override
@@ -132,13 +136,11 @@ public class Game extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        if (world.getPlayerController() != null) {
-            if(!hasSetViewPort) {
-                world.getPlayerController().getStage().setViewport(this.viewPort);
-                hasSetViewPort = true;
-            }
-            camera.setToOrtho(false, width, height);
-            world.getPlayerController().getStage().getViewport().update(width, height, true);
+        if (!hasSetViewPort) {
+            this.stage.setViewport(this.viewPort);
+            hasSetViewPort = true;
         }
+        camera.setToOrtho(false, width, height);
+        this.stage.getViewport().update(width, height, true);
     }
 }

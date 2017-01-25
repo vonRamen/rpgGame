@@ -143,12 +143,12 @@ public class WorldGenerator extends Thread {
             if (o == true) {
                 i--;
             } else {
-                newObject = new WorldObject(objectId, x, y);
+                newObject = new WorldObject(null, objectId, x, y);
             }
 
             //place in list:
             if (newObject != null) {
-                WorldObject temp = new WorldObject(objectId, posX * 32, posY * 32);
+                WorldObject temp = new WorldObject(null, objectId, posX * 32, posY * 32);
                 objectsList.add(temp);
             }
         }
@@ -170,7 +170,7 @@ public class WorldGenerator extends Thread {
                     }
                 }
                 if (mayPlace) {
-                    WorldObject temp = new WorldObject(id, randomX * 32, randomY * 32);
+                    WorldObject temp = new WorldObject(null, id, randomX * 32, randomY * 32);
                     worldObjects.add(temp);
                     count++;
                 }

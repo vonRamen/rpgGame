@@ -37,8 +37,7 @@ public class PlayerController { //This class handles all the controls from the p
     private Client client;
     private GUIStage stage;
     private Scene scene;
-    private int lastX;
-    private int lastY; //makes sure a new movement has been entered.
+
     private Skin skin;
     private OrthographicCamera camera;
 
@@ -46,76 +45,17 @@ public class PlayerController { //This class handles all the controls from the p
         this.camera = camera;
         this.player = player;
         this.client = client;
-        this.lastX = 0;
-        this.lastY = 0;
     }
 
     public void startGUI() {
-        Skin skin = new Skin(Gdx.files.internal("gui skins/uiskin.json"));
-        stage = new GUIStage(world, camera, player, skin, client);
     }
 
     public boolean hasGUI() {
         return stage != null;
     }
 
-    public void inputHandling() {
-        if (player != null) {
-            int hAxis = ((Gdx.input.isKeyPressed(Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.A) ? 1 : 0));
-            int vAxis = ((Gdx.input.isKeyPressed(Keys.W) ? 1 : 0) - (Gdx.input.isKeyPressed(Keys.S) ? 1 : 0));
-            player.move(hAxis, vAxis);
-
-            if ((lastX != vAxis || lastY != hAxis) && (vAxis != 0 || hAxis != 0)) { //send update
-                Packets.BeginMovement movementUpdate = new Packets.BeginMovement();
-                movementUpdate.entity = new EntitySimpleType();
-                movementUpdate.entity.changeX = hAxis;
-                movementUpdate.entity.changeY = vAxis;
-                movementUpdate.entity.x = player.x;
-                movementUpdate.entity.y = player.y;
-                movementUpdate.entity.uId = player.uId;
-                client.sendTCP(movementUpdate);
-
-            } else if ((vAxis == 0 && hAxis == 0) && (lastX != 0 || lastY != 0)) {
-                Packets.EndMovement movementUpdate = new Packets.EndMovement();
-                movementUpdate.entity = new EntitySimpleType();
-                movementUpdate.entity.uId = player.uId;
-                movementUpdate.entity.changeX = hAxis;
-                movementUpdate.entity.changeY = vAxis;
-                movementUpdate.entity.x = player.x;
-                movementUpdate.entity.y = player.y;
-                client.sendTCP(movementUpdate);
-            }
-            if ((vAxis != 0 || hAxis != 0)) { //if the player is moving.
-                //Check chunk position
-                player.chunkX = (int) player.x / (32 * 32);
-                player.chunkY = (int) player.y / (32 * 32);
-                if (player.chunkX != player.chunkXLastOn || player.chunkY != player.chunkYLastOn) {
-                    //Send package request of next chunks.
-                    Packets.requestChunks chunkRequest = new Packets.requestChunks();
-                    chunkRequest.entity = new EntitySimpleType();
-                    chunkRequest.entity.chunkX = player.chunkX;
-                    chunkRequest.entity.chunkY = player.chunkY;
-                    client.sendTCP(chunkRequest);
-                    //Remove the chunks from far away
-                    world.updateRemoval(player.chunkX, player.chunkY);
-                    //update last on spots
-                    player.chunkXLastOn = player.chunkX;
-                    player.chunkYLastOn = player.chunkY;
-                }
-            }
-
-            lastX = vAxis;
-            lastY = hAxis;
-        }
-    }
-
     public void update() {
-        if(!player.isDead) {
-            inputHandling();
-        }
-        if (stage != null) {
-            stage.act();
-        }
+
     }
     
     public Stage getStage() {

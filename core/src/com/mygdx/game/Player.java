@@ -10,6 +10,8 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Json;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -21,6 +23,7 @@ public class Player extends Human {
     private String userName;
     private String userPassword;
     private String path;
+    private String lastTownUId;
     private boolean hasUpdatedInventory;
 
     //alerts is used to send alert windows to gui
@@ -44,6 +47,15 @@ public class Player extends Human {
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
+        
+        //check for town "collision"
+        Iterator townIterator = this.world.getTowns().entrySet().iterator();
+        while(townIterator.hasNext()) {
+            Town town = (Town) ((Map.Entry) townIterator.next()).getValue();
+            if(this.bounds.overlaps(town.getBounds())) {
+                //System.out.println("Welcome to the town of: "+town.getName());
+            }
+        }
     }
 
     public static void generate(String path, String userName, String userPassword) {

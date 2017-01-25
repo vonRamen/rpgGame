@@ -5,6 +5,7 @@
  */
 package com.mygdx.game;
 
+import Persistence.Action;
 import Server.ExtraCommand;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -25,14 +26,14 @@ public abstract class Entity implements Drawable, Cloneable {
     protected boolean isNetworkObject;
     protected boolean isAttacking;
     protected boolean isMoving;
-    protected boolean isDead;
+    private boolean isDead;
     protected float x;
     protected float y;
     protected float z;
     protected float forceDir;
     protected float forceSpeed;
-    protected float changeX;
-    protected float changeY;
+    public float changeX;
+    public float changeY;
     protected float strength;
     protected float boundsPattingX = 5;
     protected float boundsPattingY = 2;
@@ -40,10 +41,10 @@ public abstract class Entity implements Drawable, Cloneable {
     protected float speed;
     protected float alpha;
     protected double deltaTime;
-    protected int chunkX; //The position of the chunk currently on
-    protected int chunkY;
-    protected int chunkXLastOn;
-    protected int chunkYLastOn;
+    private int chunkX; //The position of the chunk currently on
+    private int chunkY;
+    private int chunkXLastOn;
+    private int chunkYLastOn;
     protected int hp;
     protected String animationName;
     protected int animationDirection;
@@ -100,7 +101,7 @@ public abstract class Entity implements Drawable, Cloneable {
         if (animation != null) {
             currentFrame = animation.getKeyFrame(this.animationTimer, true);
         }
-        if (((changeX != 0 || changeY != 0) && isNetworkObject) || (forceSpeed != 0)) {
+        if ((changeX != 0 || changeY != 0)) {
             move(changeX, changeY);
         }
         
@@ -426,9 +427,9 @@ public abstract class Entity implements Drawable, Cloneable {
      * @return
      */
     public int getOnTile() {
-        Chunk currentChunk = this.world.getChunk(this.chunkX, this.chunkY);
-        float relativeX = (this.x - (chunkX * 32 * 32))+16;
-        float relativeY = (this.y - (chunkY * 32 * 32));
+        Chunk currentChunk = this.world.getChunk(this.getChunkX(), this.getChunkY());
+        float relativeX = (this.x - (getChunkX() * 32 * 32))+16;
+        float relativeY = (this.y - (getChunkY() * 32 * 32));
 
         int tileX = (int) relativeX / 32;
         int tileY = (int) relativeY / 32;
@@ -443,5 +444,78 @@ public abstract class Entity implements Drawable, Cloneable {
     @Override
     public boolean isFlaggedForRemoval() {
         return toBeRemoved;
+    }
+
+    /**
+     * @return the isDead
+     */
+    public boolean isIsDead() {
+        return isDead;
+    }
+
+    /**
+     * @return the chunkX
+     */
+    public int getChunkX() {
+        return chunkX;
+    }
+
+    /**
+     * @param chunkX the chunkX to set
+     */
+    public void setChunkX(int chunkX) {
+        this.chunkX = chunkX;
+    }
+
+    /**
+     * @return the chunkY
+     */
+    public int getChunkY() {
+        return chunkY;
+    }
+
+    /**
+     * @param chunkY the chunkY to set
+     */
+    public void setChunkY(int chunkY) {
+        this.chunkY = chunkY;
+    }
+
+    /**
+     * @return the chunkXLastOn
+     */
+    public int getChunkXLastOn() {
+        return chunkXLastOn;
+    }
+
+    /**
+     * @param chunkXLastOn the chunkXLastOn to set
+     */
+    public void setChunkXLastOn(int chunkXLastOn) {
+        this.chunkXLastOn = chunkXLastOn;
+    }
+
+    /**
+     * @return the chunkYLastOn
+     */
+    public int getChunkYLastOn() {
+        return chunkYLastOn;
+    }
+
+    /**
+     * @param chunkYLastOn the chunkYLastOn to set
+     */
+    public void setChunkYLastOn(int chunkYLastOn) {
+        this.chunkYLastOn = chunkYLastOn;
+    }
+    
+    @Override
+    public ArrayList<Action> getActions() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public ArrayList<Action> getActions(String uId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

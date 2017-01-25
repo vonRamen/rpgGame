@@ -43,6 +43,13 @@ public class Action {
     private String soundEffect;
     private boolean soundIsLooping;
     private Sound2D activeSound;
+    
+    //Permissions
+    //0 : everybody
+    //1 : guest
+    //2 : builder
+    //3 : owner
+    private int permissionLevel;
 
     public Action() {
         RGN = new Random();
@@ -190,5 +197,12 @@ public class Action {
         if (this.activeSound != null) {
             this.activeSound.stop();
         }
+    }
+
+    /**
+     * @return the permissionLevel
+     */
+    public int getPermissionLevel() {
+        return permissionLevel;
     }
 }

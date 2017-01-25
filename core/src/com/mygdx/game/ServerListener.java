@@ -81,8 +81,8 @@ public class ServerListener extends Listener {
         if (object instanceof Packets.requestChunks) {
             Packets.requestChunks request = (Packets.requestChunks) object;
             Player player = playerToConnection.get(connection);
-            player.chunkX = request.entity.chunkX;
-            player.chunkY = request.entity.chunkY;
+            player.setChunkX(request.entity.getChunkX());
+            player.setChunkY(request.entity.getChunkY());
             this.isRecurring = false; //Makes sure it only recures once.
             sendWorldData(connection, player);
         }
@@ -108,6 +108,11 @@ public class ServerListener extends Listener {
                 droppedItems.remove(item.getuId());
             }
         }
+        if (object instanceof Town) {
+            System.out.println("Town received!");
+            this.world.updateTown((Town) object);
+            server.sendToAllExceptTCP(connection.getID(), object);
+        }
     }
 
     public void sendWorldData(Connection connection, Player player) {
@@ -123,7 +128,7 @@ public class ServerListener extends Listener {
         //Set new Access
         for (int iy = -fieldOfView; iy < fieldOfView + 1; iy++) {
             for (int ix = -fieldOfView; ix < fieldOfView + 1; ix++) {
-                Chunk chunk = world.getChunk(ix + player.chunkX, iy + player.chunkY);
+                Chunk chunk = world.getChunk(ix + player.getChunkX(), iy + player.getChunkY());
                 if (chunk != null) {
                     if (chunk.getClientControlling() == null) {
                         chunk.setClientControlling(player.uId);

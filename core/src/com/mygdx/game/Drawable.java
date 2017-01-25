@@ -19,4 +19,5 @@ public interface Drawable {
     public float getY();
     public float getX();
     public ArrayList<Action> getActions();
+    public ArrayList<Action> getActions(String uId);
 }

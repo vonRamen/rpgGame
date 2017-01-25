@@ -96,8 +96,8 @@ public class Chunk implements Runnable {
         worldObjects.add(worldObject);
     }
 
-    public void addObject(int id, int x, int y) {
-        WorldObject w = WorldObject.create(id, x, y);
+    public void addObject(GameWorld world, int id, int x, int y) {
+        WorldObject w = WorldObject.create(world, id, x, y);
         worldObjects.add(w);
         drawable.add(w);
     }
@@ -119,20 +119,6 @@ public class Chunk implements Runnable {
 
     }
     
-    public static void makeSampleTest() { //generates chunk with all of the objects and items
-        
-        Chunk chunk = new Chunk(0, 0, null);
-        for(int i = 0; i < GameObject.getGameObjects().size(); i++) {
-            chunk.worldObjects.add(new WorldObject(i, 32+i*3*32, 92));
-        }
-        
-        Json json = new Json();
-        String str = json.toJson(chunk);
-
-        FileHandle fileHandler = new FileHandle("worlds/name/chunks/tiles"+chunk.getX()+" "+chunk.getY()+".json");
-        fileHandler.writeString(str, false);
-    }
-
     public void fillTile(int tile_id) {
         for (int iy = 0; iy < 32; iy++) {
             for (int ix = 0; ix < 32; ix++) {

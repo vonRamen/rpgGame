@@ -8,6 +8,7 @@ package GUI;
 import Persistence.Action;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -18,6 +19,7 @@ import com.mygdx.game.Drawable;
 import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.Player;
+import com.mygdx.game.WorldObject;
 
 /**
  *
@@ -39,8 +41,11 @@ public class WorldClickHandler {
         this.skin = skin;
         this.table = table;
     }
-    
+
     public void rightClick(int x, int y) {
+        if (player == null) {
+            return;
+        }
         int tileX = getTileX(x);
         int tileY = getTileY(y);
         System.out.println("X " + tileX * 32 + " Y " + tileY * 32);
@@ -49,12 +54,11 @@ public class WorldClickHandler {
             int drawableTilePositionX = ((int) drawable.getX()) / 32;
             int drawableTilePositionY = ((int) drawable.getY()) / 32;
             if (drawableTilePositionX == tileX && drawableTilePositionY == tileY) {
-                table.clear();
                 if (drawable.getActions() == null) {
                     return;
                 }
-                for (Action action : drawable.getActions()) {
-                    TextButton textButton = new TextButton(action.getName(), skin);
+                for (Action action : drawable.getActions(player.getUId())) {
+                    TextButton textButton = new TextButton(action.getName() + " " + drawable.toString(), skin);
                     textButton.addListener(new ActionClickListener(player, drawable, action));
                     table.add(textButton);
                     table.row();
@@ -65,6 +69,9 @@ public class WorldClickHandler {
     }
 
     public void leftClick(int x, int y) {
+        if (player == null) {
+            return;
+        }
         int tileX = getTileX(x);
         int tileY = getTileY(y);
         System.out.println("X " + tileX * 32 + " Y " + tileY * 32);
@@ -77,14 +84,19 @@ public class WorldClickHandler {
             int drawableTilePositionX = ((int) drawable.getX()) / 32;
             int drawableTilePositionY = ((int) drawable.getY()) / 32;
             if (drawableTilePositionX == tileX && drawableTilePositionY == tileY) {
-                if(drawable.getActions() == null || drawable.getActions().size() == 0 || drawable.getActions().get(0) == null) {
+                if (drawable.getActions() == null || drawable.getActions().size() == 0 || drawable.getActions().get(0) == null) {
                     //if the object doesn't have any actions
                     return;
                 }
-                drawable.getActions().get(0).initializeExecution(player, drawable);
+                if (drawable.getActions(player.getUId()).size() > 0) {
+                    drawable.getActions(player.getUId()).get(0).initializeExecution(player, drawable);
+                }
             }
         }
-        player.getWorld().spawnMob(0, this.getWorldPositionX(x), this.getWorldPositionY(y));
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     public void update() {

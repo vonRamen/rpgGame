@@ -213,4 +213,9 @@ public class DroppedItem implements Drawable {
         return toBeRemoved;
     }
 
+    @Override
+    public ArrayList<Action> getActions(String uId) {
+        return this.getActions();
+    }
+
 }

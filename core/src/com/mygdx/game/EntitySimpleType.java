@@ -21,9 +21,8 @@ public class EntitySimpleType extends Entity {
         bounds=null;
         animation=null;
     }
-
-    @Override
-    public ArrayList<Action> getActions() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    
+    public void setUid(String uid) {
+        this.uId = uid;
     }
 }
