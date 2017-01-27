@@ -1,1 +1,1 @@
-{sprites:[{textureId:24,xRelative:0,yRelative:0},{textureId:4,xRelative:0,yRelative:32}],name:Boulder,rectangle:{height:32,width:32,x:0,y:0},id:2}
+{sprites:[{textureId:24,xRelative:0,yRelative:0},{textureId:4,xRelative:0,yRelative:32}],name:Boulder, zIndex:32,rectangle:{height:32,width:32,x:0,y:0},id:2}

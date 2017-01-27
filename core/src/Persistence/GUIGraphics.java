@@ -6,6 +6,7 @@
 package Persistence;
 
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -33,5 +34,13 @@ public class GUIGraphics {
 
     public static TextureRegionDrawable get(String name) {
         return images.get(name);
+    }
+    
+    public static Pixmap getPixmap(String name) {
+        TextureRegion region = images.get(name).getRegion();
+        if(!region.getTexture().getTextureData().isPrepared()) {
+            region.getTexture().getTextureData().prepare();
+        }
+        return region.getTexture().getTextureData().consumePixmap();
     }
 }

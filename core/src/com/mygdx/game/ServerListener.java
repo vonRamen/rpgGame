@@ -148,6 +148,9 @@ public class ServerListener extends Listener {
                 }
             }
         }
+        for(Town town : world.getTownsAsList()) {
+            server.sendToTCP(connection.getID(), town);
+        }
         System.out.println("has send data");
     }
     

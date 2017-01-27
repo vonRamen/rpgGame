@@ -6,6 +6,7 @@
 package Persistence;
 
 import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.AlertType;
 import com.mygdx.game.Drawable;
 import com.mygdx.game.Entity;
 import com.mygdx.game.EntityAction;
@@ -122,7 +123,7 @@ public class Action {
                 if (human instanceof Player) {
                     System.out.println(humanPos.dst2(object.getX(), object.getY()));
                     Player player = (Player) human;
-                    player.addAlert("Not close enough to perform action!");
+                    player.addAlert("Not close enough to perform action!", AlertType.WORLD);
                 }
                 return false;
             }
@@ -132,7 +133,7 @@ public class Action {
                 if (!human.getInventory().hasItem(item.getId(), item.getCount())) {
                     if (human instanceof Player) {
                         Player player = (Player) human;
-                        player.addAlert("Not sufficient amount of: " + GameItem.get(item.getId()).name);
+                        player.addAlert("Not sufficient amount of: " + GameItem.get(item.getId()).name, AlertType.WORLD);
                     }
                     return false;
                 }
@@ -142,7 +143,7 @@ public class Action {
             if (requiredLevel > human.getSkill(requiredSkill).getLevel()) {
                 if (human instanceof Player) {
                     Player player = (Player) human;
-                    player.addAlert("A " + requiredSkill + " level " + requiredLevel + " is required!");
+                    player.addAlert("A " + requiredSkill + " level " + requiredLevel + " is required!", AlertType.WORLD);
                 }
                 return false;
             }
@@ -151,7 +152,7 @@ public class Action {
             if (!human.getInventory().hasItem(requiredEquipmentId, 1)) {
                 if (human instanceof Player) {
                     Player player = (Player) human;
-                    player.addAlert("Item " + GameItem.get(requiredEquipmentId).name + " is required!");
+                    player.addAlert("Item " + GameItem.get(requiredEquipmentId).name + " is required!", AlertType.WORLD);
                 }
                 return false;
             }

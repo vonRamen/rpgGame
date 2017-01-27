@@ -518,4 +518,8 @@ public abstract class Entity implements Drawable, Cloneable {
     public ArrayList<Action> getActions(String uId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    public float getZ() {
+        return this.z;
+    }
 }

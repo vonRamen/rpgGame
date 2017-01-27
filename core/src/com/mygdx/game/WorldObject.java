@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 public class WorldObject implements Drawable {
 
-    protected int x, y;
+    protected int x, y, z;
     protected int id;
     protected boolean toBeRemoved;
     protected String name;
@@ -44,7 +44,7 @@ public class WorldObject implements Drawable {
 
     public void initialize() {
         if (id != -1) {
-            if (GameObject.get(id) != null) {
+            if (GameObject.get(id) != null && GameObject.get(id).getBounds() != null) {
                 this.rectangle = new Rectangle(GameObject.get(id).getBounds().x + x, //Set's the bounds to be like the one in the GameObject
                         GameObject.get(id).getBounds().y + y,
                         GameObject.get(id).getBounds().width,
@@ -64,6 +64,10 @@ public class WorldObject implements Drawable {
 
     public void setId(int id) {
         this.id = id;
+        sendUpdate();
+    }
+
+    public void sendUpdate() {
         GameWorld worldHold = this.world;
         this.world = null;
         WorldObject.client.sendTCP(this);
@@ -95,12 +99,12 @@ public class WorldObject implements Drawable {
     public float getY() {
         return y;
     }
-    
+
     public ArrayList<Action> getActions(String uId) {
         int permissionLevel = this.getPermissionLevel(uId);
         ArrayList<Action> returnActions = new ArrayList();
-        for(Action action : GameObject.get(id).getActions()) {
-            if(action.getPermissionLevel() <= permissionLevel) {
+        for (Action action : GameObject.get(id).getActions()) {
+            if (action.getPermissionLevel() <= permissionLevel) {
                 returnActions.add(action);
             }
         }
@@ -155,18 +159,19 @@ public class WorldObject implements Drawable {
             while (townIterator.hasNext()) {
                 Town town = (Town) ((Map.Entry) townIterator.next()).getValue();
                 if (this.rectangle.overlaps(town.getBounds())) {
-                    for(String string : town.getOwnersOfPoint(x, y)) {
-                        if(string == uId) {
+                    for (String string : town.getOwnersOfPoint(x, y)) {
+                        if (string.equals(uId)) {
                             return 3;
                         }
+                        System.out.println(string.equals(uId));
                     }
-                    for(String string : town.getBuildersOfPoint(x, y)) {
-                        if(string == uId) {
+                    for (String string : town.getBuildersOfPoint(x, y)) {
+                        if (string.equals(uId)) {
                             return 2;
                         }
                     }
-                    for(String string : town.getGuestsOfPoint(x, y)) {
-                        if(string == uId) {
+                    for (String string : town.getGuestsOfPoint(x, y)) {
+                        if (string.equals(uId)) {
                             return 1;
                         }
                     }
@@ -175,8 +180,16 @@ public class WorldObject implements Drawable {
         }
         return 0;
     }
-    
+
     public void setWorld(GameWorld world) {
         this.world = world;
+    }
+
+    @Override
+    public float getZ() {
+        if (GameObject.get(id) != null) {
+            return GameObject.get(id).getzIndex();
+        }
+        return 0;
     }
 }

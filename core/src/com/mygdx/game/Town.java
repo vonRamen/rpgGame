@@ -17,10 +17,10 @@ import java.util.UUID;
 public class Town {
 
     int tileX, tileY, tileW, tileH;
-    private Rectangle bounds;
+    Rectangle bounds;
     private String name;
     private String description;
-    private GameWorld world;
+    GameWorld world;
     private String uId;
     private ArrayList<String> uIdOfOwners;
     private ArrayList<String> uIdOfBuilders;
@@ -29,6 +29,8 @@ public class Town {
 
     public Town(GameWorld world, int tileX, int tileY, int tileW, int tileH) {
         this.uIdOfOwners = new ArrayList();
+        this.uIdOfBuilders = new ArrayList();
+        this.uIdOfGuest = new ArrayList();
         this.properties = new ArrayList();
         this.world = world;
         this.tileX = tileX;
@@ -44,8 +46,10 @@ public class Town {
     public Town() {
     }
 
-    public void addProperty(int tileX, int tileY, int tileW, int tileH) {
-        this.properties.add(new Property(world, this, tileX, tileY, tileW, tileH));
+    public Property addProperty(int tileX, int tileY, int tileW, int tileH) {
+        Property property = new Property(world, this, tileX, tileY, tileW, tileH);
+        this.properties.add(property);
+        return property;
     }
 
     /**
@@ -90,12 +94,15 @@ public class Town {
 
     public void setWorld(GameWorld world) {
         this.world = world;
-        for (Property property : properties) {
+        for (Property property : getProperties()) {
             property.setWorld(world);
         }
     }
 
     public void sendUpdate() {
+        for(Property property : this.properties) {
+            property.prepareUpdateStart();
+        }
         Client client = this.world.getClient();
         Rectangle boundsHold = this.getBounds();
         GameWorld worldHold = this.world;
@@ -104,14 +111,21 @@ public class Town {
         client.sendTCP(this);
         this.world = worldHold;
         this.bounds = boundsHold;
+        for(Property property : this.properties) {
+            property.town = this;
+            property.endUpdate();
+        }
     }
 
     public void initialize() {
         this.bounds = new Rectangle(tileX * 32, tileY * 32, tileW * 32, tileH * 32);
+        for(Property property : this.properties) {
+            property.initialize();
+        }
     }
 
     /**
-     * @return the uId
+     * @return the uId        this.world = null;
      */
     public String getuId() {
         return uId;
@@ -121,6 +135,9 @@ public class Town {
      * @return the bounds
      */
     public Rectangle getBounds() {
+        if(this.bounds == null) {
+            this.bounds = new Rectangle(this.tileX * 32, this.tileY * 32, this.tileW * 32, this.tileH * 32);
+        }
         return bounds;
     }
 
@@ -138,10 +155,15 @@ public class Town {
     
     public ArrayList<String> getUidsInList(ArrayList<String> uIds, int x, int y) {
         Rectangle rect = new Rectangle(x, y, 32, 32);
-        for (Property property : properties) {
+        for (Property property : this.properties) {
             if (property.getBounds().overlaps(rect)) {
                 System.out.println("Does overlap");
-                return property.getUidsInList(uIds, x, y);
+                if(uIds.equals(this.uIdOfOwners))
+                    return property.getOwnersOfPoint(x, y);
+                if(uIds.equals(this.uIdOfBuilders))
+                    return property.getBuildersOfPoint(x, y);
+                if(uIds.equals(this.uIdOfGuest))
+                    return property.getGuestsOfPoint(x, y);
             }
         }
 
@@ -153,5 +175,12 @@ public class Town {
      */
     public ArrayList<String> getuIdOfOwners() {
         return uIdOfOwners;
+    }
+
+    /**
+     * @return the properties
+     */
+    public ArrayList<Property> getProperties() {
+        return properties;
     }
 }

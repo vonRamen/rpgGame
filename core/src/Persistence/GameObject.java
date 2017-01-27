@@ -64,6 +64,7 @@ public class GameObject {
     protected int id;
     protected Rectangle rectangle;
     protected ArrayList<Action> actions;
+    private float zIndex;
 
     public GameObject(String name) {
         this.name = name;
@@ -135,9 +136,11 @@ public class GameObject {
     public void draw(int x, int y) {
         for (SpriteRelative spriteShadow : sprites) {
             //draw shadows.
-            Game.batch.setColor(0, 0, 0, 0.4f);
-            Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
-            Game.batch.setColor(Color.WHITE);
+            if (zIndex != -1) {
+                Game.batch.setColor(0, 0, 0, 0.4f);
+                Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
+                Game.batch.setColor(Color.WHITE);
+            }
         }
         for (SpriteRelative sprites : sprites) {
             //draw the actual sprites
@@ -148,10 +151,8 @@ public class GameObject {
     public void update(WorldObject object, double deltaTime) {
         if (object.getUpdateTimer() > 0) {
             object.setUpdateTimer(object.getUpdateTimer() - (float) deltaTime);
-        } else {
-            if(isRespawnObject) {
-                object.setId(this.isRespawningInto);
-            }
+        } else if (isRespawnObject) {
+            object.setId(this.isRespawningInto);
         }
 
     }
@@ -200,5 +201,12 @@ public class GameObject {
      */
     public float getRespawnTime() {
         return respawnTime;
+    }
+
+    /**
+     * @return the zIndex
+     */
+    public float getzIndex() {
+        return zIndex;
     }
 }

@@ -27,7 +27,7 @@ public class Player extends Human {
     private boolean hasUpdatedInventory;
 
     //alerts is used to send alert windows to gui
-    private ArrayList<String> alerts;
+    private ArrayList<Alert> alerts;
 
     public Player(GameWorld world) {
         super(world);
@@ -47,13 +47,14 @@ public class Player extends Human {
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
-        
+
         //check for town "collision"
         Iterator townIterator = this.world.getTowns().entrySet().iterator();
-        while(townIterator.hasNext()) {
-            Town town = (Town) ((Map.Entry) townIterator.next()).getValue();
-            if(this.bounds.overlaps(town.getBounds())) {
-                //System.out.println("Welcome to the town of: "+town.getName());
+        Town town = this.world.getTownAtPoint((int) x, (int) y);
+        if (town != null) {
+            if (!town.getuId().equals(this.lastTownUId)) {
+                lastTownUId = town.getuId();
+                this.addAlert("Arrived at "+town.getName()+"\nDescription: "+town.getDescription(),AlertType.SCREEN);
             }
         }
     }
@@ -79,24 +80,23 @@ public class Player extends Human {
         player.path = path;
         if (player != null) {
             if (player.userPassword.equals(userPassword)) {
-                player.uId = UUID.randomUUID().toString();
                 return player;
             }
         }
         return null;
     }
 
-    public String getAlert() {
+    public Alert getAlert() {
         if (alerts.isEmpty()) {
             return null;
         }
-        String returnString = alerts.get(0);
+        Alert returnAlert = alerts.get(0);
         alerts.remove(0);
-        return returnString;
+        return returnAlert;
     }
 
-    public void addAlert(String string) {
-        alerts.add(string);
+    public void addAlert(String string, AlertType type) {
+        alerts.add(new Alert(string, type));
     }
 
     public String getUsername() {
@@ -114,7 +114,7 @@ public class Player extends Human {
         this.x = x;
         this.y = y;
     }
-    
+
     public void setInventoryUpdate(boolean isUpdated) {
         hasUpdatedInventory = isUpdated;
     }
@@ -129,6 +129,6 @@ public class Player extends Human {
         Json json = new Json();
         String string = json.toJson(this);
         fileHandle.writeString(string, false);
-        System.out.println("Player succesfully saved: "+userName);
+        System.out.println("Player succesfully saved: " + userName);
     }
 }

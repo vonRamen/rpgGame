@@ -17,7 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
  */
 public class DragHandleListener extends ClickListener {
 
-    private float localX, localY;
+    private float startX, startY, localX, localY;
     private boolean isClicked;
     private Group group;
 
@@ -27,9 +27,12 @@ public class DragHandleListener extends ClickListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        localX = x - group.getX();
-        localY = y - group.getY();
+        startX = group.getX();
+        startY = group.getY();
+        this.localX = x;
+        this.localY = y;
         isClicked = true;
+        System.out.println("Touch down!");
         return super.touchDown(event, x, y, pointer, button); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -38,13 +41,13 @@ public class DragHandleListener extends ClickListener {
         isClicked = false;
         super.touchUp(event, x, y, pointer, button); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    
 
     @Override
     public void touchDragged(InputEvent event, float x, float y, int pointer) {
         if (isClicked) {
-            group.setPosition(x + localX, y + localY);
+            group.setPosition(startX + x - localX, startY + y - localY);
+            startX = group.getX();
+            startY = group.getY();
         }
         super.touchDragged(event, x, y, pointer); //To change body of generated methods, choose Tools | Templates.
     }

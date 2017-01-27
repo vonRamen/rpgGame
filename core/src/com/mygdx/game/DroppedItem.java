@@ -22,7 +22,7 @@ import java.util.UUID;
  */
 public class DroppedItem implements Drawable {
 
-    protected int x, y;
+    protected int x, y, z;
     protected int yDirection; //1 = up, -1 = down
     protected int id;
     protected int count;
@@ -216,6 +216,11 @@ public class DroppedItem implements Drawable {
     @Override
     public ArrayList<Action> getActions(String uId) {
         return this.getActions();
+    }
+
+    @Override
+    public float getZ() {
+        return this.z;
     }
 
 }

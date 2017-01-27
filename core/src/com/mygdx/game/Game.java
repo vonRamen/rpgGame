@@ -11,6 +11,7 @@ import Persistence.Sound2D;
 import Persistence.Weapon;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -57,6 +58,7 @@ public class Game extends ApplicationAdapter {
         Weapon.load();
         GUIGraphics.load();
         GameEntity.load();
+        Gdx.graphics.setCursor(Gdx.graphics.newCursor(GUIGraphics.getPixmap(("cursor.png")), 0, 0));
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
             public float getX() {
                 return position.x;
@@ -102,12 +104,18 @@ public class Game extends ApplicationAdapter {
             default:
                 break;
         }
-        stage.draw();
         batch.end();
-        shapeRenderer.begin();
-        shapeRenderer.set(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        Gdx.gl.glEnable(Gdx.gl20.GL_BLEND);
+        Gdx.gl.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         world.drawDebug();
+        if(stage instanceof GUIStage) {
+            ((GUIStage) stage).drawShapes();
+        }
         shapeRenderer.end();
+        Gdx.gl.glDisable(Gdx.gl20.GL_BLEND);
+        stage.draw();
         //update commands:
         switch (gameState) {
             case PLAYING:

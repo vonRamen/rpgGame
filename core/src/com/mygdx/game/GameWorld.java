@@ -5,14 +5,12 @@
  */
 package com.mygdx.game;
 
-import Persistence.GameItem;
-import Persistence.GameObject;
 import Persistence.Sound2D;
 import Server.WorldSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Json;
 import com.esotericsoftware.kryonet.Client;
@@ -21,7 +19,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.Map;
 
 /**
  *
@@ -72,6 +70,7 @@ public class GameWorld {
                 chunks.add(chunk);
             }
         } else {
+            //Sound2D.playMusic("Deep Forest.ogg");
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
             objectsToBeAdded = new ArrayList();
@@ -102,11 +101,46 @@ public class GameWorld {
         WorldObject.setClient(this.getClient());
         this.player = player;
         addEntity(player);
-        Town town = new Town(this, 0, 0, 32, 32);
-        this.towns.put(town.getuId(), town);
-        town.initialize();
-        town.addOwner(player.getUId());
-        town.sendUpdate();
+
+    }
+
+    /**
+     * Returns true if successful
+     *
+     * @param name
+     * @param description
+     * @param tileX
+     * @param tileY
+     * @param tileW
+     * @param tileH
+     * @return true or false
+     */
+    public Town addTown(String name, String description, int tileX, int tileY, int tileW, int tileH) {
+        Town town = new Town(this, tileX, tileY, tileW, tileH);
+        boolean addTown = true;
+        for (Town otherTown : this.getTownsAsList()) {
+            if (town.getBounds().overlaps(otherTown.getBounds())) {
+                addTown = false;
+                this.player.addAlert("The town, that you are trying to add is overlapping another!", AlertType.SCREEN);
+            }
+        }
+
+        if (tileW < 6 || tileH < 6) {
+            this.player.addAlert("A town must at least be 6 x 6 in size!", AlertType.SCREEN);
+            addTown = false;
+        }
+
+        if (addTown) {
+            this.towns.put(town.getuId(), town);
+            town.initialize();
+            town.addOwner(player.getUId());
+            town.setName(name);
+            town.setDescription(description);
+            town.sendUpdate();
+            return town;
+        } else {
+            return null;
+        }
     }
 
     public void spawnItem(int id, int count, int x, int y) {
@@ -117,6 +151,14 @@ public class GameWorld {
     public void spawnMob(int id, int x, int y) {
         Mob mob = new Mob(id, x, y);
         this.objectsToBeAdded.add(mob);
+    }
+
+    public void spawnWorldObject(int id, int x, int y) {
+        System.out.println("X: "+x+ "Y : "+ y);
+        WorldObject worldObject = new WorldObject(this, id, x, y);
+        worldObject.initialize();
+        worldObject.sendUpdate();
+        this.updateWorldObject(worldObject);
     }
 
     public Entity addEntity(Entity entity) {
@@ -282,6 +324,7 @@ public class GameWorld {
         }
         Chunk chunk = getChunk((int) (worldObject.getX() / 32 / 32), (int) (worldObject.getY() / 32 / 32));
         chunk.updateWorldObject(worldObject);
+        drawOrder.add(worldObject);
     }
 
     void drawDebug() {
@@ -348,8 +391,12 @@ public class GameWorld {
                 break;
             }
         }
-        droppedItems.add(item);
-        item.setWorld(this);
+
+        //if the item is not being removed, add it
+        if (!item.toBeRemoved) {
+            droppedItems.add(item);
+            item.setWorld(this);
+        }
     }
 
     /**
@@ -423,5 +470,25 @@ public class GameWorld {
 
     public HashMap<String, Town> getTowns() {
         return this.towns;
+    }
+
+    public ArrayList<Town> getTownsAsList() {
+        Iterator townIterator = this.getTowns().entrySet().iterator();
+        ArrayList<Town> returnList = new ArrayList();
+        while (townIterator.hasNext()) {
+            Town town = (Town) ((Map.Entry) townIterator.next()).getValue();
+            returnList.add(town);
+        }
+        return returnList;
+    }
+
+    public Town getTownAtPoint(int x, int y) {
+        Rectangle point = new Rectangle(x, y, 32, 32);
+        for (Town town : this.getTownsAsList()) {
+            if (town.getBounds().overlaps(point)) {
+                return town;
+            }
+        }
+        return null;
     }
 }
