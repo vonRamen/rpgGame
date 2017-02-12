@@ -5,18 +5,26 @@
  */
 package GUI;
 
+import Persistence.GUIGraphics;
+import Persistence.GameObject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
+import com.mygdx.game.AlertType;
 import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.Player;
+import com.mygdx.game.Property;
+import com.mygdx.game.Town;
 
 /**
  * Controls creating a town
@@ -26,16 +34,27 @@ import com.mygdx.game.Player;
 public class GUITown extends GUIMovable {
 
     private Table createMenu;
+    private Table buildMenu;
+    private VerticalGroup townManager;
+    private VerticalGroup currentTownManaging;
     private GameWorld world;
     private ClickHistory tileClickHistory;
     private Click draggedClick;
+    private int chosenBuildObjectId = 9;
 
     public GUITown(Player player, Skin skin, Table rightClickBox) {
         super(player, skin, rightClickBox);
         create();
         this.createMenu = this.createCreateMenu();
+        this.townManager = this.updateTownManager();
+        this.buildMenu = this.createBuildMenu();
+        this.currentTownManaging = new VerticalGroup();
         this.root.addActor(this.createMenu);
+        this.root.addActor(townManager);
+        this.root.addActor(currentTownManaging);
+        this.root.addActor(this.buildMenu);
         this.createMenu.setVisible(false);
+        this.createMenu.pack();
     }
 
     private void create() {
@@ -49,16 +68,40 @@ public class GUITown extends GUIMovable {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                verticalGroup.setVisible(false);
                 createMenu.setVisible(!createMenu.isVisible());
             }
 
         });
         TextButton manage = new TextButton("Manage Town", this.skin);
+        manage.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                verticalGroup.setVisible(false);
+                townManager = updateTownManager();
+                townManager.setVisible(true);
+                root.addActor(townManager);
+            }
+
+        });
+        TextButton build = new TextButton("Build", this.skin);
+        build.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                verticalGroup.setVisible(false);
+                buildMenu.setVisible(!buildMenu.isVisible());
+            }
+
+        });
+
         TextButton exit = new TextButton("Exit", this.skin);
 
         this.verticalGroup.addActor(handleBar);
         this.verticalGroup.addActor(create);
         this.verticalGroup.addActor(manage);
+        this.verticalGroup.addActor(build);
         this.verticalGroup.addActor(exit);
 
         //Fit buttons
@@ -67,11 +110,13 @@ public class GUITown extends GUIMovable {
 
     private Table createCreateMenu() {
         Table table = new Table();
+        table.align(Align.left);
         TextButton handleBar = new TextButton("Create Town", skin);
         handleBar.addListener(new DragHandleListener(table));
         final TextField townName = new TextField("Town Name", skin);
         final TextArea townDescription = new TextArea("Description", skin);
         TextButton createTown = new TextButton("Create!", skin);
+        TextButton cancel = new TextButton("Cancel", skin);
         createTown.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -82,21 +127,41 @@ public class GUITown extends GUIMovable {
                 int yTile = (click1.getY() < click2.getY()) ? click1.getY() : click2.getY();
                 int wTile = (click1.getX() < click2.getX()) ? click2.getX() - click1.getX() : click1.getX() - click2.getX();
                 int hTile = (click1.getY() < click2.getY()) ? click2.getY() - click1.getY() : click1.getY() - click2.getY();
-                world.addTown(townName.getText(), townDescription.getText(), xTile, yTile, wTile, hTile);
+                Town town = world.addTown(townName.getText(), townDescription.getText(), xTile, yTile, wTile, hTile);
                 tileClickHistory.clear();
                 draggedClick.set(0, 0);
+
+                //if the creation was a success, go back to root menu
+                if (town != null) {
+                    verticalGroup.setVisible(true);
+                    createMenu.setVisible(false);
+                }
             }
 
         });
+        cancel.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                verticalGroup.setVisible(true);
+                createMenu.setVisible(false);
+            }
+
+        });
+
         table.add(handleBar);
         table.row();
         table.add(townName);
         table.row();
         table.add(townDescription);
-        table.row();
-        table.add(createTown);
         townDescription.setPrefRows(6);
+        table.row();
+        HorizontalGroup lastGroup = new HorizontalGroup();
+        lastGroup.addActor(cancel);
+        lastGroup.addActor(createTown);
+        table.add(lastGroup);
         table.setPosition(verticalGroup.getX() + 50, verticalGroup.getY() - 50);
+        table.pack();
         return table;
     }
 
@@ -131,8 +196,98 @@ public class GUITown extends GUIMovable {
             Game.shapeRenderer.rect(xTile * 32, yTile * 32, wTile * 32, hTile * 32);
         }
     }
+    
 
     void setDraggedClick(Click click) {
         this.draggedClick = click;
+    }
+
+    private VerticalGroup updateTownManager() {
+        VerticalGroup newGroup = new VerticalGroup();
+        Table root = new Table();
+
+        TextButton handleBar = new TextButton("Manager", skin);
+        handleBar.addListener(new DragHandleListener(newGroup));
+        newGroup.addActor(handleBar);
+        newGroup.addActor(root);
+        root.row();
+
+        VerticalGroup towns = new VerticalGroup();
+        VerticalGroup properties = new VerticalGroup();
+        root.add(towns);
+        root.add(properties);
+
+        towns.addActor(new TextButton("Towns:", skin));
+        properties.addActor(new TextButton("Properties:", skin));
+        //Get Towns:
+        if (this.player != null) {
+            System.out.println("Is the list empty? " + this.world.getOwnedTowns(player.getUId()));
+            for (Town town : this.world.getOwnedTowns(player.getUId())) {
+                final Town towny = town;
+                TextButton townToAdd = new TextButton(town.getName(), this.skin);
+                townToAdd.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                        makeTownMenu(towny);
+                    }
+
+                });
+                towns.addActor(townToAdd);
+            }
+
+            //get Properties:
+            for (Property property : this.world.getOwnedProperties(player.getUId())) {
+                TextButton propertyToAdd = new TextButton(property.getName(), this.skin);
+                properties.addActor(propertyToAdd);
+            }
+        }
+
+        root.pack();
+        newGroup.setVisible(false);
+        return newGroup;
+    }
+
+    private void makeTownMenu(Town town) {
+        currentTownManaging.clear();
+        TextButton handleBar = new TextButton(town.getName(), this.skin);
+        handleBar.addListener(new DragHandleListener(currentTownManaging));
+        currentTownManaging.addActor(handleBar);
+
+        currentTownManaging.setVisible(true);
+    }
+
+    private Table createBuildMenu() {
+        Table table = new Table();
+        TextButton handleBar = new TextButton("Build!", this.skin);
+        handleBar.addListener(new DragHandleListener(table));
+        table.add(handleBar);
+        table.row();
+        for (GameObject object : GameObject.getAllGhostObjects()) {
+            final GameObject objectHold = object;
+            TextButton objectButton = new TextButton(object.getName(), this.skin);
+            objectButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                    chosenBuildObjectId = objectHold.getId();
+                    player.addAlert("Chosen object id: " + objectHold.getId(), AlertType.SCREEN);
+                }
+
+            });
+            table.add(objectButton);
+            table.row();
+        }
+        table.pack();
+        table.setVisible(false);
+        return table;
+    }
+
+    public boolean buildMoveIsActive() {
+        return buildMenu.isVisible();
+    }
+
+    public int getIdBuildItem() {
+        return chosenBuildObjectId;
     }
 }

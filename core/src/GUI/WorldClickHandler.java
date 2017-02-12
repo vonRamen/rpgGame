@@ -20,6 +20,7 @@ import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.Player;
 import com.mygdx.game.WorldObject;
+import java.util.ArrayList;
 
 /**
  *
@@ -35,6 +36,7 @@ public class WorldClickHandler {
     private Table table;
     private ClickHistory tileClickHistory;
     private Click draggedClick;
+    private Click mouseLocation;
 
     public WorldClickHandler(Player player, OrthographicCamera camera, GameWorld world, Skin skin, Table table) {
         this.player = player;
@@ -50,24 +52,28 @@ public class WorldClickHandler {
         }
         int tileX = getTileX(x);
         int tileY = getTileY(y);
-        System.out.println("X " + tileX * 32 + " Y " + tileY * 32);
+
+        ArrayList<Drawable> drawablesAtPosition = new ArrayList();
 
         for (Drawable drawable : world.getDrawable()) {
             int drawableTilePositionX = ((int) drawable.getX()) / 32;
             int drawableTilePositionY = ((int) drawable.getY()) / 32;
             if (drawableTilePositionX == tileX && drawableTilePositionY == tileY) {
-                if (drawable.getActions() == null) {
-                    return;
-                }
-                for (Action action : drawable.getActions(player.getUId())) {
-                    TextButton textButton = new TextButton(action.getName() + " " + drawable.toString(), skin);
-                    textButton.addListener(new ActionClickListener(player, drawable, action));
-                    table.add(textButton);
-                    table.row();
-                }
-                table.setPosition(x, Gdx.graphics.getHeight() - y);
+                drawablesAtPosition.add(drawable);
             }
         }
+        for (Drawable drawable : drawablesAtPosition) {
+            if (drawable.getActions() == null) {
+                continue;
+            }
+            for (Action action : drawable.getActions(player.getUId())) {
+                TextButton textButton = new TextButton(action.getName() + " " + drawable.toString(), skin);
+                textButton.addListener(new ActionClickListener(player, drawable, action));
+                table.add(textButton);
+                table.row();
+            }
+        }
+        table.setPosition(x, Gdx.graphics.getHeight() - y);
     }
 
     public void leftClick(int x, int y) {
@@ -89,7 +95,7 @@ public class WorldClickHandler {
             if (drawableTilePositionX == tileX && drawableTilePositionY == tileY) {
                 if (drawable.getActions() == null || drawable.getActions().size() == 0 || drawable.getActions().get(0) == null) {
                     //if the object doesn't have any actions
-                    return;
+                    continue;
                 }
                 if (drawable.getActions(player.getUId()).size() > 0) {
                     drawable.getActions(player.getUId()).get(0).initializeExecution(player, drawable);
@@ -97,7 +103,7 @@ public class WorldClickHandler {
             }
         }
     }
-    
+
     public void leftClickDown(int x, int y) {
         this.tileClickHistory.addClick(this.getTileX(x), this.getTileY(y));
     }
@@ -106,8 +112,8 @@ public class WorldClickHandler {
         this.player = player;
     }
 
-    public void update() {
-
+    public void update(int x, int y) {
+        mouseLocation.set(this.getWorldPositionX(x), this.getWorldPositionY(y));
     }
 
     public int getTileX(int x) {
@@ -136,12 +142,16 @@ public class WorldClickHandler {
     public void setTileClickHistory(ClickHistory tileClickHistory) {
         this.tileClickHistory = tileClickHistory;
     }
-    
+
     public void setDraggedClick(Click click) {
         this.draggedClick = click;
     }
 
     public void touchDragged(int screenX, int screenY) {
         this.draggedClick.set(this.getTileX(screenX), this.getTileY(screenY));
+    }
+
+    void setMousePositionObject(Click currentMouseLocation) {
+        this.mouseLocation = currentMouseLocation;
     }
 }

@@ -5,6 +5,7 @@
  */
 package com.mygdx.game;
 
+import Persistence.ReportCreatable;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
@@ -21,11 +22,12 @@ import java.util.Map;
  *
  * @author kristian
  */
-public class AnimationGroup {
+public class AnimationGroup implements ReportCreatable {
 
     private String name;
     //type: 0 = entity, 1 = hair
     private int type;
+    private String fileName;
 
     //0 = walk, 1 = idle, 2 = swimming
     private String[] sheets;
@@ -52,6 +54,7 @@ public class AnimationGroup {
         for (FileHandle f : dirHandle.list()) {
             AnimationGroup object = json.fromJson(AnimationGroup.class, f);
             object.loadSprites();
+            object.fileName = f.name();
             animations.put(object.name, object);
         }
     }
@@ -155,5 +158,25 @@ public class AnimationGroup {
 
     public Animation getUnderWaterAnimation(int index) {
         return this.groupAnimations.get(2)[index];
+    }
+
+    @Override
+    public int getId() {
+        return 0;
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    @Override
+    public ArrayList<? extends ReportCreatable> getAll() {
+        return new Utility.KUtility<AnimationGroup>().getArrayListOfMap(animations);
     }
 }

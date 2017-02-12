@@ -25,7 +25,7 @@ import java.util.logging.FileHandler;
  *
  * @author kristian
  */
-public class Tile {
+public class Tile implements ReportCreatable {
 
     private static String path = "tiles/";
     private static ArrayList<TextureRegion> sprites = new ArrayList();
@@ -34,6 +34,8 @@ public class Tile {
     private ArrayList<Integer> animationIds;
     private float animationSpeed;
     private int id;
+    private String fileName;
+    private String name;
     private float currentFrame;
 
     public Tile() {
@@ -70,6 +72,8 @@ public class Tile {
         for(FileHandle file : dirHandle.list()) {
             Tile tile = json.fromJson(Tile.class, file);
             tile.initialize();
+            tile.name = file.nameWithoutExtension();
+            tile.fileName = file.name();
             tiles.put(tile.id, tile);
         }
     }
@@ -119,5 +123,28 @@ public class Tile {
     
     public void draw(float deltaTime, int x, int y) {
         Game.batch.draw(spriteAnimation.getKeyFrame(deltaTime), x, y);
+    }
+
+    @Override
+    public int getId() {
+        return this.id;
+    }
+
+    @Override
+    public String getName() {
+        if(this.name == null) {
+            return "No name";
+        }
+        return this.name;
+    }
+
+    @Override
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    @Override
+    public ArrayList<? extends ReportCreatable> getAll() {
+        return new Utility.KUtility<Tile>().getArrayListOfMap(Tile.tiles);
     }
 }

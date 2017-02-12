@@ -29,6 +29,7 @@ public class KKryo {
         kryo.register(Packets.BeginMovement.class);
         kryo.register(Packets.EndMovement.class);
         kryo.register(Packets.requestChunks.class);
+        kryo.register(Packets.DenyAccess.class);
         kryo.register(Chunk.class);
         kryo.register(ArrayList.class);
         kryo.register(WorldObject.class);

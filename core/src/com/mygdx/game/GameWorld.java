@@ -5,6 +5,7 @@
  */
 package com.mygdx.game;
 
+import Persistence.GameObject;
 import Persistence.Sound2D;
 import Server.WorldSettings;
 import com.badlogic.gdx.Gdx;
@@ -154,11 +155,90 @@ public class GameWorld {
     }
 
     public void spawnWorldObject(int id, int x, int y) {
-        System.out.println("X: "+x+ "Y : "+ y);
+        if (!this.legalToPlaceObject(id, x, y)) {
+            return;
+        }
         WorldObject worldObject = new WorldObject(this, id, x, y);
         worldObject.initialize();
         worldObject.sendUpdate();
         this.updateWorldObject(worldObject);
+    }
+
+    public boolean legalToPlaceObject(int id, int x, int y) {
+        if (GameObject.get(id) == null) {
+            return false;
+        }
+        int tileX = (int) (x / 32);
+        int tileY = (int) (y / 32);
+        int ChunkX = (int) (tileX / 32);
+        int ChunkY = (int) (tileX / 32);
+        Chunk chunk = getChunk(ChunkX, ChunkY);
+        /*
+        if (chunk.getTiles()[tileY % 32][tileX % 32] == 0) {
+            //return false;
+        }*/
+        boolean hasSomethingToPlaceOn = true;
+        if (GameObject.get(id).getzIndex() > 0) {
+            hasSomethingToPlaceOn = false;
+        }
+        for (WorldObject object : worldObjectsAtLocation(x, y)) {
+            if (object.getZ() < GameObject.get(id).getzIndex()) {
+                hasSomethingToPlaceOn = true;
+            } else {
+                return false;
+            }
+        }
+        return hasSomethingToPlaceOn;
+    }
+
+    public ArrayList<WorldObject> worldObjectsAtLocation(int x, int y) {
+        ArrayList<WorldObject> objects = new ArrayList();
+
+        //binary search:
+        for (Drawable drawable : binarySearchY(drawOrder, 0, drawOrder.size()-1, y)) {
+            if (drawable instanceof WorldObject) {
+                WorldObject worldObject = (WorldObject) drawable;
+                if (worldObject.getX() == x) {
+                    objects.add(worldObject);
+                }
+            }
+        }
+        return objects;
+    }
+
+    /**
+     * let position be -1 at initial
+     *
+     * @param objects
+     * @param start
+     * @param end
+     * @param value
+     * @return
+     */
+    public ArrayList<Drawable> binarySearchY(ArrayList<Drawable> objects, int start, int end, float value) {
+        int middle = (int) ((start + end) / 2);
+
+        if (end < start) {
+            return new ArrayList();
+        }
+
+        float yValue = objects.get(middle).getY();
+        if (yValue == value) {
+        } else if (value > yValue) {
+            return binarySearchY(objects, start, middle - 1, value);
+        } else {
+            return binarySearchY(objects, middle + 1, end, value);
+        }
+
+        //if we found a value around the middle
+        while (objects.get(middle - 1).getY() == value) {
+            middle--;
+        }
+        ArrayList<Drawable> returnList = new ArrayList();
+        while ((middle < objects.size()) ? objects.get(middle).getY() == value : false) {
+            returnList.add(this.drawOrder.get(middle++));
+        }
+        return returnList;
     }
 
     public Entity addEntity(Entity entity) {
@@ -181,7 +261,7 @@ public class GameWorld {
         updateEntities();
         try {
             Collections.sort(drawOrder, depthComparator);
-        } catch (ConcurrentModificationException e) {
+        } catch (java.lang.IllegalArgumentException e) {
 
         }
 
@@ -490,5 +570,55 @@ public class GameWorld {
             }
         }
         return null;
+    }
+
+    /**
+     * Get the owned towns of the Human with the uId:
+     *
+     * @param uId
+     * @return
+     */
+    public ArrayList<Town> getOwnedTowns(String uId) {
+        ArrayList<Town> currentTowns = getTownsAsList();
+        ArrayList<Town> returnList = new ArrayList();
+
+        for (Town town : currentTowns) {
+            for (String id : town.getuIdOfOwners()) {
+                if (id.equals(uId)) {
+                    returnList.add(town);
+                }
+            }
+        }
+
+        return returnList;
+    }
+
+    public ArrayList<Property> getOwnedProperties(String uId) {
+        ArrayList<Town> currentTowns = getTownsAsList();
+        ArrayList<Property> returnList = new ArrayList();
+
+        for (Town town : currentTowns) {
+            for (Property property : town.getProperties()) {
+                for (String id : property.getuIdOfOwners()) {
+                    if (id.equals(uId)) {
+                        returnList.add(property);
+                    }
+                }
+            }
+        }
+
+        return returnList;
+    }
+
+    public boolean canBuildAtPoint(String uId, int x, int y) {
+        if (this.getTownAtPoint(x, y) == null) {
+            return false;
+        }
+        for (String id : this.getTownAtPoint(x, y).getOwnersOfPoint(x, y)) {
+            if (id.equals(uId)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

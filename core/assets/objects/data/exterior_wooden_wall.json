@@ -1,0 +1,1 @@
+{sprites:[{textureId:80,xRelative:0,yRelative:64},{textureId:100,xRelative:0,yRelative:32},{textureId:120,xRelative:0,yRelative:0}],name:Exterior wooden wall,rectangle:{height:32,width:32,x:0,y:0},id:7, isBuilt:true,requiredConstructionLevel:1,hideWhenNear:true}

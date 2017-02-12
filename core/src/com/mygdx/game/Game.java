@@ -7,6 +7,7 @@ import Persistence.GameEntity;
 import Persistence.GameItem;
 import Persistence.Tile;
 import Persistence.GameObject;
+import Persistence.Report;
 import Persistence.Sound2D;
 import Persistence.Weapon;
 import com.badlogic.gdx.ApplicationAdapter;
@@ -58,6 +59,7 @@ public class Game extends ApplicationAdapter {
         Weapon.load();
         GUIGraphics.load();
         GameEntity.load();
+        Report.generateReports();
         Gdx.graphics.setCursor(Gdx.graphics.newCursor(GUIGraphics.getPixmap(("cursor.png")), 0, 0));
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
             public float getX() {
@@ -100,6 +102,7 @@ public class Game extends ApplicationAdapter {
         switch (gameState) {
             case PLAYING:
                 world.draw();
+                ((GUIStage) stage).drawStuff();
                 break;
             default:
                 break;

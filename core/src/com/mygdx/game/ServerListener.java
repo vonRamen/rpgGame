@@ -55,7 +55,15 @@ public class ServerListener extends Listener {
         }
         if (object instanceof Packets.RequestAccess) {
             Packets.RequestAccess obj = (Packets.RequestAccess) object;
-            
+
+            //player already logged in
+            if (this.playerAlreadyLoggedIn(obj.name)) {
+                Packets.DenyAccess denyMessage = new Packets.DenyAccess();
+                denyMessage.denyReason = "An user named " + obj.name + " is already logged in!";
+                server.sendToTCP(connection.getID(), denyMessage);
+                return;
+            }
+
             Player player = null;
             player = Player.get(fullPath + "players/", obj.name, obj.password);
 
@@ -65,8 +73,12 @@ public class ServerListener extends Listener {
                 playerToConnection.put(connection, player);
                 sendWorldData(connection, player);
                 sendDroppedItemData(connection);
+                sendAllPlayerInfo();
+            } else {
+                Packets.DenyAccess denyMessage = new Packets.DenyAccess();
+                denyMessage.denyReason = "Either the player doesn't exists, or the password is invalid!";
+                server.sendToTCP(connection.getID(), denyMessage);
             }
-            sendAllPlayerInfo();
         }
         if (object instanceof Packets.BeginMovement) {
             EntitySimpleType player = (EntitySimpleType) ((BeginMovement) object).entity;
@@ -117,6 +129,9 @@ public class ServerListener extends Listener {
 
     public void sendWorldData(Connection connection, Player player) {
         //Disable editing on all of the other.
+        if (player == null) {
+            return;
+        }
         for (Chunk chunk : world.getChunks()) {
             if (chunk.getClientControlling() != null) {
                 if (chunk.getClientControlling().equals(player.getUId())) {
@@ -148,15 +163,15 @@ public class ServerListener extends Listener {
                 }
             }
         }
-        for(Town town : world.getTownsAsList()) {
+        for (Town town : world.getTownsAsList()) {
             server.sendToTCP(connection.getID(), town);
         }
         System.out.println("has send data");
     }
-    
+
     public void sendDroppedItemData(Connection connection) {
         Iterator iterator = droppedItems.entrySet().iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Map.Entry pair = (Map.Entry) iterator.next();
             DroppedItem item = (DroppedItem) pair.getValue();
             connection.sendTCP(item);
@@ -165,20 +180,22 @@ public class ServerListener extends Listener {
 
     public void removeClient(Connection connection) {
         Player player = playerToConnection.get(connection);
-        player.saveProgress();
-        isRecurring = false;
-        //Disable editing on all of the other.
-        for (Chunk chunk : world.getChunks()) {
-            if (chunk.getClientControlling() != null) {
-                if (chunk.getClientControlling().equals(player.getUId())) {
-                    chunk.setClientControlling(null);
+        if (player != null) {
+            player.saveProgress();
+            isRecurring = false;
+            //Disable editing on all of the other.
+            for (Chunk chunk : world.getChunks()) {
+                if (chunk.getClientControlling() != null) {
+                    if (chunk.getClientControlling().equals(player.getUId())) {
+                        chunk.setClientControlling(null);
+                    }
                 }
             }
-        }
 
-        player.extraCommand = ExtraCommand.LOGOUT;
-        server.sendToAllTCP(player);
-        playerToConnection.remove(connection);
+            player.extraCommand = ExtraCommand.LOGOUT;
+            server.sendToAllTCP(player);
+            playerToConnection.remove(connection);
+        }
         connections.remove(connection);
         //Set access for all the other clients
         if (connections.size() != 0) {
@@ -203,5 +220,14 @@ public class ServerListener extends Listener {
     @Override
     public void disconnected(Connection connection) {
         removeClient(connection);
+    }
+
+    private boolean playerAlreadyLoggedIn(String username) {
+        for (Player player : new Utility.KUtility<Player>().getArrayListOfMap(this.playerToConnection)) {
+            if (player.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

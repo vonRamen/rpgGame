@@ -21,7 +21,7 @@ public class Inventory {
         count = new int[size];
         id = new int[size];
     }
-    
+
     public void setEntity(Entity entity) {
         this.entity = entity;
     }
@@ -33,13 +33,13 @@ public class Inventory {
     public void drop(int id, int count) {
 
     }
-    
+
     public void dropOnSlot(int slotId) {
         int x = (int) entity.getX();
         int y = (int) entity.getY();
-        
+
         GameWorld world = entity.getWorld();
-        
+
         world.spawnItem(this.id[slotId], this.count[slotId], x, y);
         this.id[slotId] = 0;
         this.count[slotId] = 0;
@@ -140,7 +140,18 @@ public class Inventory {
         }
         return count;
     }
-    
+
+    public void changePosition(int pos1, int pos2) {
+        int holdId = id[pos1];
+        int holdCount = count[pos1];
+
+        id[pos1] = id[pos2];
+        count[pos1] = count[pos2];
+
+        id[pos2] = holdId;
+        count[pos2] = holdCount;
+    }
+
     public void prepareSend() {
         this.entity = null;
     }

@@ -25,6 +25,9 @@ public class Player extends Human {
     private String path;
     private String lastTownUId;
     private boolean hasUpdatedInventory;
+    
+    //whether or not the player wants to see begin walls.
+    private boolean xray;
 
     //alerts is used to send alert windows to gui
     private ArrayList<Alert> alerts;
@@ -66,6 +69,7 @@ public class Player extends Human {
         player.inventory = new Inventory(28);
         player.addSkills();
         player.path = path;
+        player.uId = UUID.randomUUID().toString();
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
 
         Json json = new Json();
@@ -130,5 +134,26 @@ public class Player extends Human {
         String string = json.toJson(this);
         fileHandle.writeString(string, false);
         System.out.println("Player succesfully saved: " + userName);
+    }
+
+    /**
+     * @return the lastTownUId
+     */
+    public String getLastTownUId() {
+        return lastTownUId;
+    }
+
+    /**
+     * @return the xray
+     */
+    public boolean isXray() {
+        return xray;
+    }
+
+    /**
+     * @param xray the xray to set
+     */
+    public void setXray(boolean xray) {
+        this.xray = xray;
     }
 }

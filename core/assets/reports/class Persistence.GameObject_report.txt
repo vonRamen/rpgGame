@@ -1,0 +1,17 @@
+Id: 0    Name: Tree    File Name: tree_01.json
+Id: 1    Name: Interior wooden wall    File Name: interior_wooden_wall.json
+Id: 2    Name: Boulder    File Name: boulder_01.json
+Id: 3    Name: Stump    File Name: stump_01.json
+Id: 4    Name: Small Table    File Name: small_table.json
+Id: 5    Name: Vase with flowers    File Name: vase_with_flowers.json
+Id: 6    Name: Wooden floor    File Name: wooden_floor.json
+Id: 7    Name: Exterior wooden wall    File Name: exterior_wooden_wall.json
+Id: 8    Name: Wooden door    File Name: exterior_wooden_door_open.json
+Id: 9    Name: Wooden door    File Name: exterior_wooden_door_closed.json
+Id: 10    Name: Straw Roof    File Name: straw_roof.json
+Id: 11    Name: Interior wooden wall    File Name: null
+Id: 12    Name: Wooden floor    File Name: null
+Id: 13    Name: Exterior wooden wall    File Name: null
+Id: 14    Name: Wooden door    File Name: null
+Id: 15    Name: Wooden door    File Name: null
+Id: 16    Name: Straw Roof    File Name: null

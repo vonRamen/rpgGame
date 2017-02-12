@@ -5,6 +5,7 @@
  */
 package GUI;
 
+import Persistence.GameObject;
 import Persistence.Sound2D;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -61,6 +62,7 @@ public class GUIStage extends Stage {
     private ArrayList<Message> messages;
     private ClickHistory tileClickHistory;
     private Click clickHold;
+    private Click currentMouseLocation;
     private VerticalGroup screenMessages;
 
     //Menu you geclickHoldt, when you rightclick on something
@@ -69,6 +71,7 @@ public class GUIStage extends Stage {
     public GUIStage(GameWorld world, OrthographicCamera camera, Player player, Client client) {
         super();
         this.clickHold = new Click(0, 0);
+        this.currentMouseLocation = new Click(0, 0);
         this.screenMessages = new VerticalGroup();
         this.screenMessages.columnLeft();
         this.tileClickHistory = new ClickHistory();
@@ -86,6 +89,7 @@ public class GUIStage extends Stage {
         this.worldClickHandler = new WorldClickHandler(player, camera, world, skin, rightClickMenu);
         this.worldClickHandler.setTileClickHistory(tileClickHistory);
         this.worldClickHandler.setDraggedClick(clickHold);
+        this.worldClickHandler.setMousePositionObject(currentMouseLocation);
         this.townManagement = new GUITown(player, skin, rightClickMenu);
         this.townManagement.setWorld(this.world);
         this.townManagement.setTileClickHistory(tileClickHistory);
@@ -107,10 +111,7 @@ public class GUIStage extends Stage {
 
             this.inventory.updatePositioning(camera);
             this.townManagement.updatePositioning(camera);
-
-            this.camera = (OrthographicCamera) this.getViewport().getCamera();
             super.act();
-            worldClickHandler.update();
             if (isDrawing) {
             }
             if (player.hasUpdatedInventory()) {
@@ -134,6 +135,7 @@ public class GUIStage extends Stage {
             if (this.player != null) {
                 this.toggleInventory();
                 this.worldClickHandler.setPlayer(player);
+                this.townManagement.setPlayer(player);
             }
         }
         for (Message message : messages) {
@@ -200,6 +202,9 @@ public class GUIStage extends Stage {
             if (keycode == Input.Keys.I) {
                 toggleInventory();
             }
+            if (keycode == Input.Keys.B) {
+                townManagement.toggle();
+            }
             if (keycode == Input.Keys.Q) {
                 combatMode = !combatMode;
             }
@@ -211,6 +216,11 @@ public class GUIStage extends Stage {
                 if (inventory != null) {
                     this.player.pickup();
                     this.inventory.update();
+                }
+            }
+            if (keycode == Input.Keys.R) {
+                if (player != null) {
+                    player.setXray(!player.isXray());
                 }
             }
             if (keycode == Input.Keys.M) {
@@ -283,6 +293,14 @@ public class GUIStage extends Stage {
         }
         fixButtonSizes(rightClickMenu);
 
+        //Add object if possible:
+        if (tileClickHistory.getReleaseNewestFirst(0) != null) {
+            int xPoint = (int) this.tileClickHistory.getReleaseNewestFirst(0).getX() * 32;
+            int yPoint = (int) this.tileClickHistory.getReleaseNewestFirst(0).getY() * 32;
+            if (world.canBuildAtPoint(player.getUId(), xPoint, yPoint) && townManagement.buildMoveIsActive()) {
+                world.spawnWorldObject(townManagement.getIdBuildItem(), xPoint, yPoint);
+            }
+        }
         return true;
     }
 
@@ -329,6 +347,7 @@ public class GUIStage extends Stage {
         super.mouseMoved(screenX, screenY);
         this.screenX = screenX;
         this.screenY = screenY;
+        worldClickHandler.update(screenX, screenY);
         return true;
     }
 
@@ -341,7 +360,6 @@ public class GUIStage extends Stage {
     @Override
     public void draw() {
         super.draw();
-        worldClickHandler.draw();
     }
 
     /**
@@ -439,5 +457,21 @@ public class GUIStage extends Stage {
      */
     public ClickHistory getTileClickHistory() {
         return tileClickHistory;
+    }
+
+    public void drawStuff() {
+        //Draw build stuff:
+        if (townManagement.buildMoveIsActive()) {
+            int roundedPositionX = (int) (this.currentMouseLocation.getX() / 32) * 32;
+            int roundedPositionY = (int) (this.currentMouseLocation.getY() / 32) * 32;
+            if (world.legalToPlaceObject(townManagement.getIdBuildItem(), roundedPositionX, roundedPositionY)) {
+                Game.batch.setColor(0.2f, 0.4f, 0.5f, 0.6f);
+            } else {
+                Game.batch.setColor(0.8f, 0.3f, 0.3f, 0.7f);
+            }
+            GameObject.get(townManagement.getIdBuildItem()).draw(roundedPositionX, roundedPositionY, false);
+            Game.batch.setColor(Color.WHITE);
+        }
+        this.worldClickHandler.draw();
     }
 }

@@ -157,7 +157,6 @@ public class Town {
         Rectangle rect = new Rectangle(x, y, 32, 32);
         for (Property property : this.properties) {
             if (property.getBounds().overlaps(rect)) {
-                System.out.println("Does overlap");
                 if(uIds.equals(this.uIdOfOwners))
                     return property.getOwnersOfPoint(x, y);
                 if(uIds.equals(this.uIdOfBuilders))

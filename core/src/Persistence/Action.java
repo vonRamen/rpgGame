@@ -63,63 +63,63 @@ public class Action {
     public boolean executeAction(Human human, Drawable object) {
 
         //Gain exp:
-        if (requiredSkill != null) {
-            human.getSkill(this.requiredSkill).addExp(expGain);
+        if (getRequiredSkill() != null) {
+            human.getSkill(this.getRequiredSkill()).addExp(getExpGain());
         }
 
         if (object != null) {
             if (object instanceof WorldObject) {
-                if (doesTransform) {
+                if (isDoesTransform()) {
                     WorldObject worldObject = (WorldObject) object;
-                    worldObject.setId(transformIntoId);
+                    worldObject.setId(getTransformIntoId());
                 }
-                if (doesDrop) {
+                if (isDoesDrop()) {
                     //random number generator
-                    float dropPercent = RGN.nextFloat() * 100;
+                    float dropPercent = getRGN().nextFloat() * 100;
                     GameWorld world = human.getWorld();
-                    for (DropItem item : itemDrops) {
+                    for (DropItem item : getItemDrops()) {
                         if (dropPercent < item.getChance()) {
                             //Make sure, at least one item is dropped.
-                            int itemCount = RGN.nextInt(item.getCount() + 1);
+                            int itemCount = getRGN().nextInt(item.getCount() + 1);
                             if (itemCount == 0) {
                                 itemCount = 1;
                             }
                             System.out.println("Item Count: " + itemCount);
                             for (int i = 0; i < itemCount; i++) {
-                                world.spawnItem(item.getId(), 1, (int) object.getX() + RGN.nextInt(32) - 16, (int) object.getY() - RGN.nextInt(16) - 16);
+                                world.spawnItem(item.getId(), 1, (int) object.getX() + getRGN().nextInt(32) - 16, (int) object.getY() - getRGN().nextInt(16) - 16);
                             }
 
                         }
-                        dropPercent = RGN.nextFloat() * 100;
+                        dropPercent = getRGN().nextFloat() * 100;
                     }
                 }
             }
         }
 
         //Remove and add items!
-        if (itemTakes != null) {
-            for (DropItem item : itemTakes) {
+        if (getItemTakes() != null) {
+            for (DropItem item : getItemTakes()) {
                 human.getInventory().removeItem(item.getId(), item.getCount());
             }
         }
-        if (itemGives != null) {
-            for (DropItem item : itemGives) {
+        if (getItemGives() != null) {
+            for (DropItem item : getItemGives()) {
                 human.getInventory().addItem(item.getId(), item.getCount());
             }
         }
         if (human instanceof Player) {
             ((Player) human).setInventoryUpdate(true);
         }
-        if (activeSound != null) {
-            activeSound.stop();
+        if (getActiveSound() != null) {
+            getActiveSound().stop();
         }
         return true;
     }
 
     public boolean canExecute(Human human, Drawable object) {
-        if (maxDistance != 0) {
+        if (getMaxDistance() != 0) {
             Vector2 humanPos = new Vector2(human.getX(), human.getY());
-            if (humanPos.dst2(object.getX(), object.getY()) > maxDistance) {
+            if (humanPos.dst2(object.getX(), object.getY()) > getMaxDistance()) {
                 if (human instanceof Player) {
                     System.out.println(humanPos.dst2(object.getX(), object.getY()));
                     Player player = (Player) human;
@@ -128,8 +128,8 @@ public class Action {
                 return false;
             }
         }
-        if (itemTakes != null) {
-            for (DropItem item : itemTakes) {
+        if (getItemTakes() != null) {
+            for (DropItem item : getItemTakes()) {
                 if (!human.getInventory().hasItem(item.getId(), item.getCount())) {
                     if (human instanceof Player) {
                         Player player = (Player) human;
@@ -139,20 +139,20 @@ public class Action {
                 }
             }
         }
-        if (requiredSkill != null) {
-            if (requiredLevel > human.getSkill(requiredSkill).getLevel()) {
+        if (getRequiredSkill() != null) {
+            if (getRequiredLevel() > human.getSkill(getRequiredSkill()).getLevel()) {
                 if (human instanceof Player) {
                     Player player = (Player) human;
-                    player.addAlert("A " + requiredSkill + " level " + requiredLevel + " is required!", AlertType.WORLD);
+                    player.addAlert("A " + getRequiredSkill() + " level " + getRequiredLevel() + " is required!", AlertType.WORLD);
                 }
                 return false;
             }
         }
-        if (doesRequireEquipment) {
+        if (isDoesRequireEquipment()) {
             if (!human.getInventory().hasItem(requiredEquipmentId, 1)) {
                 if (human instanceof Player) {
                     Player player = (Player) human;
-                    player.addAlert("Item " + GameItem.get(requiredEquipmentId).name + " is required!", AlertType.WORLD);
+                    player.addAlert("Item " + GameItem.get(getRequiredEquipmentId()).name + " is required!", AlertType.WORLD);
                 }
                 return false;
             }
@@ -161,25 +161,25 @@ public class Action {
     }
 
     public void initializeExecution(Human human, Drawable object) {
-        if (this.name.equals("drop")) {
+        if (this.getName().equals("drop")) {
             //then the "id" is actually the slot id
             human.getInventory().setEntity(human);
-            human.getInventory().dropOnSlot(slotId);
+            human.getInventory().dropOnSlot(getSlotId());
             ((Player) human).setInventoryUpdate(true);
             return;
         }
         if (canExecute(human, object)) {
-            if (this.soundEffect != null) {
-                if(activeSound!=null)
-                    activeSound.stop();
-                activeSound = new Sound2D(this.soundEffect);
+            if (this.getSoundEffect() != null) {
+                if(getActiveSound()!=null)
+                    getActiveSound().stop();
+                setActiveSound(new Sound2D(this.getSoundEffect()));
                 Player player = human.getWorld().getPlayer();
-                activeSound.play(human.getWorld().getPlayer(), human, soundIsLooping);
+                getActiveSound().play(human.getWorld().getPlayer(), human, isSoundIsLooping());
             } else {
-                System.out.println("Sound missing! " + soundEffect);
+                System.out.println("Sound missing! " + getSoundEffect());
             }
             human.setAction(new EntityAction(this, human, object));
-            human.setActionDuration(2);
+            human.setActionDuration(this.baseTime);
         }
     }
 
@@ -195,8 +195,8 @@ public class Action {
     }
 
     public void cancel() {
-        if (this.activeSound != null) {
-            this.activeSound.stop();
+        if (this.getActiveSound() != null) {
+            this.getActiveSound().stop();
         }
     }
 
@@ -205,5 +205,265 @@ public class Action {
      */
     public int getPermissionLevel() {
         return permissionLevel;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the slotId
+     */
+    public int getSlotId() {
+        return slotId;
+    }
+
+    /**
+     * @return the requiredLevel
+     */
+    public int getRequiredLevel() {
+        return requiredLevel;
+    }
+
+    /**
+     * @param requiredLevel the requiredLevel to set
+     */
+    public void setRequiredLevel(int requiredLevel) {
+        this.requiredLevel = requiredLevel;
+    }
+
+    /**
+     * @return the requiredSkill
+     */
+    public String getRequiredSkill() {
+        return requiredSkill;
+    }
+
+    /**
+     * @param requiredSkill the requiredSkill to set
+     */
+    public void setRequiredSkill(String requiredSkill) {
+        this.requiredSkill = requiredSkill;
+    }
+
+    /**
+     * @return the expGain
+     */
+    public int getExpGain() {
+        return expGain;
+    }
+
+    /**
+     * @param expGain the expGain to set
+     */
+    public void setExpGain(int expGain) {
+        this.expGain = expGain;
+    }
+
+    /**
+     * @return the baseTime
+     */
+    public float getBaseTime() {
+        return baseTime;
+    }
+
+    /**
+     * @param baseTime the baseTime to set
+     */
+    public void setBaseTime(float baseTime) {
+        this.baseTime = baseTime;
+    }
+
+    /**
+     * @return the maxDistance
+     */
+    public float getMaxDistance() {
+        return maxDistance;
+    }
+
+    /**
+     * @param maxDistance the maxDistance to set
+     */
+    public void setMaxDistance(float maxDistance) {
+        this.maxDistance = maxDistance;
+    }
+
+    /**
+     * @return the requiredEquipmentId
+     */
+    public int getRequiredEquipmentId() {
+        return requiredEquipmentId;
+    }
+
+    /**
+     * @param requiredEquipmentId the requiredEquipmentId to set
+     */
+    public void setRequiredEquipmentId(int requiredEquipmentId) {
+        this.requiredEquipmentId = requiredEquipmentId;
+    }
+
+    /**
+     * @return the doesRequireEquipment
+     */
+    public boolean isDoesRequireEquipment() {
+        return doesRequireEquipment;
+    }
+
+    /**
+     * @param doesRequireEquipment the doesRequireEquipment to set
+     */
+    public void setDoesRequireEquipment(boolean doesRequireEquipment) {
+        this.doesRequireEquipment = doesRequireEquipment;
+    }
+
+    /**
+     * @return the doesTransform
+     */
+    public boolean isDoesTransform() {
+        return doesTransform;
+    }
+
+    /**
+     * @param doesTransform the doesTransform to set
+     */
+    public void setDoesTransform(boolean doesTransform) {
+        this.doesTransform = doesTransform;
+    }
+
+    /**
+     * @return the transformIntoId
+     */
+    public int getTransformIntoId() {
+        return transformIntoId;
+    }
+
+    /**
+     * @param transformIntoId the transformIntoId to set
+     */
+    public void setTransformIntoId(int transformIntoId) {
+        setDoesTransform(true);
+        this.transformIntoId = transformIntoId;
+    }
+
+    /**
+     * @return the doesDrop
+     */
+    public boolean isDoesDrop() {
+        return doesDrop;
+    }
+
+    /**
+     * @param doesDrop the doesDrop to set
+     */
+    public void setDoesDrop(boolean doesDrop) {
+        this.doesDrop = doesDrop;
+    }
+
+    /**
+     * @return the itemDrops
+     */
+    public ArrayList<DropItem> getItemDrops() {
+        return itemDrops;
+    }
+
+    /**
+     * @param itemDrops the itemDrops to set
+     */
+    public void setItemDrops(ArrayList<DropItem> itemDrops) {
+        this.itemDrops = itemDrops;
+    }
+
+    /**
+     * @return the itemGives
+     */
+    public ArrayList<DropItem> getItemGives() {
+        return itemGives;
+    }
+
+    /**
+     * @param itemGives the itemGives to set
+     */
+    public void setItemGives(ArrayList<DropItem> itemGives) {
+        this.itemGives = itemGives;
+    }
+
+    /**
+     * @return the itemTakes
+     */
+    public ArrayList<DropItem> getItemTakes() {
+        return itemTakes;
+    }
+
+    /**
+     * @param itemTakes the itemTakes to set
+     */
+    public void setItemTakes(ArrayList<DropItem> itemTakes) {
+        this.itemTakes = itemTakes;
+    }
+
+    /**
+     * @return the RGN
+     */
+    public Random getRGN() {
+        return RGN;
+    }
+
+    /**
+     * @param RGN the RGN to set
+     */
+    public void setRGN(Random RGN) {
+        this.RGN = RGN;
+    }
+
+    /**
+     * @return the soundEffect
+     */
+    public String getSoundEffect() {
+        return soundEffect;
+    }
+
+    /**
+     * @param soundEffect the soundEffect to set
+     */
+    public void setSoundEffect(String soundEffect) {
+        this.soundEffect = soundEffect;
+    }
+
+    /**
+     * @return the soundIsLooping
+     */
+    public boolean isSoundIsLooping() {
+        return soundIsLooping;
+    }
+
+    /**
+     * @param soundIsLooping the soundIsLooping to set
+     */
+    public void setSoundIsLooping(boolean soundIsLooping) {
+        this.soundIsLooping = soundIsLooping;
+    }
+
+    /**
+     * @return the activeSound
+     */
+    public Sound2D getActiveSound() {
+        return activeSound;
+    }
+
+    /**
+     * @param activeSound the activeSound to set
+     */
+    public void setActiveSound(Sound2D activeSound) {
+        this.activeSound = activeSound;
+    }
+
+    /**
+     * @param permissionLevel the permissionLevel to set
+     */
+    public void setPermissionLevel(int permissionLevel) {
+        this.permissionLevel = permissionLevel;
     }
 }

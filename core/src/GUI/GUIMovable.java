@@ -77,4 +77,8 @@ abstract public class GUIMovable {
             }
         }
     }
+    
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
 }

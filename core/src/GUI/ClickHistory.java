@@ -22,6 +22,9 @@ public class ClickHistory {
     }
     
     public Click getClickNewestFirst(int id) {
+        if(releaseClicks.size() == 0) {
+            return null;
+        }
         if(clicks.size()-1-id < 0 || clicks.size()-1-id > clicks.size()-1 || clicks.size() == 0) {
             return null;
         }
@@ -29,6 +32,9 @@ public class ClickHistory {
     }
     
     public Click getReleaseNewestFirst(int id) {
+        if(releaseClicks.size() == 0) {
+            return null;
+        }
         if(releaseClicks.size()-1-id < 0 || releaseClicks.size()-1-id > releaseClicks.size()-1 || releaseClicks.size() == 0) {
             return null;
         }

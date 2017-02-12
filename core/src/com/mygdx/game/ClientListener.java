@@ -35,6 +35,9 @@ public class ClientListener extends Listener {
 
     @Override
     public void received(Connection connection, Object object) {
+        if (object instanceof Packets.DenyAccess) {
+            System.out.println(((Packets.DenyAccess) object).denyReason);
+        }
         if (object instanceof Packets.Message) {
             Packets.Message m = (Packets.Message) object;
         }

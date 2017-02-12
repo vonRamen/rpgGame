@@ -26,7 +26,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  * @author kristian
  */
-public class GameItem {
+public class GameItem implements ReportCreatable {
 
     private static ArrayList<GameItem> gameItems;
     protected static ArrayList<TextureRegion> itemTextures;
@@ -37,6 +37,8 @@ public class GameItem {
     protected int sprite_id;
     protected String name;
     protected String description;
+    protected String fileName;
+    private boolean bounce = true;
     protected int basePrice;
     private int stackSize;
 
@@ -79,6 +81,7 @@ public class GameItem {
         System.out.println("File location: "+dirHandle.path());
         for(FileHandle file : dirHandle.list()) {
             GameItem object = json.fromJson(GameItem.class, file);
+            object.fileName = file.name();
             gameItems.add(object);
         }
         System.out.println("Items loaded: "+count);
@@ -115,5 +118,32 @@ public class GameItem {
     
     public ArrayList<Action> getActions() {
         return actions;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    @Override
+    public ArrayList<? extends ReportCreatable> getAll() {
+        return GameItem.gameItems;
+    }
+
+    /**
+     * @return the bounce
+     */
+    public boolean doesBounce() {
+        return bounce;
     }
 }

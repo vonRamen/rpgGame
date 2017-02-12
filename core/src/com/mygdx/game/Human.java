@@ -49,7 +49,7 @@ public class Human extends Entity {
 
     public Human() {
         super();
-        inventory = new Inventory(30);
+        inventory = new Inventory(28);
     }
 
     public void addSkills() {
@@ -57,11 +57,13 @@ public class Human extends Entity {
         Skill skillMining = new Skill("Mining", "This is the skill, where you mine ores.");
         Skill skillWoodcutting = new Skill("Woodcutting", "In this skill, you chop wood.");
         Skill skillFarming = new Skill("Farming", "In this skill, you farm stuff");
+        Skill skillConstruction = new Skill("Construction", "In this skill, you build stuff");
         skills = new HashMap();
         skills.put("combat", skillCombat);
         skills.put("mining", skillMining);
         skills.put("woodcutting", skillWoodcutting);
         skills.put("farming", skillFarming);
+        skills.put("construction", skillConstruction);
     }
 
     @Override
@@ -218,6 +220,7 @@ public class Human extends Entity {
         this.hairColorGreen = 0.6f;
         this.hairColorRed = 0.6f;
         this.boundsPattingY = 0;
+        this.inventory.changePosition(0, 27);
         weaponSpriteReference = Weapon.get(weapon).getWeaponSprite();
         setAnimation("male_01", animationDirection, state);
         updateSlash();
@@ -299,6 +302,7 @@ public class Human extends Entity {
     }
 
     /**
+     * @param skillName
      * @return the skillCombat
      */
     public Skill getSkill(String skillName) {

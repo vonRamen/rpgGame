@@ -1,0 +1,2 @@
+{sprites:[{textureId:101,xRelative:0,yRelative:32},{textureId:121,xRelative:0,yRelative:0}],name:Wooden door,rectangle:{height:32,width:32,x:0,y:0},id:9, isBuilt:true,requiredConstructionLevel:1,
+actions:[{name:open, doesTransform:true, transformIntoId:8,maxDistance:10000, permissionLevel:1}]}

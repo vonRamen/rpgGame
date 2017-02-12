@@ -19,19 +19,21 @@ import java.util.HashMap;
  *
  * @author kristian
  */
-public class Weapon {
+public class Weapon implements ReportCreatable {
 
     private static HashMap<String, Sprite> sprites;
     private static ArrayList<Weapon> weapons;
     private static String path = "items/weapons/";
     
     private String name;
+    private String fileName;
     private String description;
     private String sprite;
     private int requiredCombatLevel;
     private int speed;
     private int damage;
     private int knockback;
+    private int id;
 
     public Weapon() {
 
@@ -52,7 +54,7 @@ public class Weapon {
         Json json = new Json();
         for(FileHandle file : fileHandler.list()) {
             Weapon object = json.fromJson(Weapon.class, file);
-
+            object.fileName = file.name();
             weapons.add(object);
         }
     }
@@ -90,5 +92,20 @@ public class Weapon {
      */
     public int getKnockback() {
         return knockback;
+    }
+
+    @Override
+    public int getId() {
+        return this.id;
+    }
+
+    @Override
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    @Override
+    public ArrayList<? extends ReportCreatable> getAll() {
+        return Weapon.weapons;
     }
 }

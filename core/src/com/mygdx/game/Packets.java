@@ -13,6 +13,7 @@ public class Packets {
 
     public static class Message{public String message;}
     public static class RequestAccess{public String name; public String password;}
+    public static class DenyAccess{public String denyReason;}
     public static class BeginMovement {public EntitySimpleType entity;}
     public static class EndMovement {public EntitySimpleType entity;}
     public static class requestChunks {public EntitySimpleType entity;}

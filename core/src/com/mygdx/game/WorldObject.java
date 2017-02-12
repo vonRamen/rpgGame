@@ -7,6 +7,7 @@ package com.mygdx.game;
 
 import Persistence.Action;
 import Persistence.GameObject;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.esotericsoftware.kryonet.Client;
@@ -49,6 +50,8 @@ public class WorldObject implements Drawable {
                         GameObject.get(id).getBounds().y + y,
                         GameObject.get(id).getBounds().width,
                         GameObject.get(id).getBounds().height);
+            } else {
+                this.rectangle = null;
             }
             this.updateTimer = GameObject.get(id).getRespawnTime();
         } else {
@@ -64,6 +67,9 @@ public class WorldObject implements Drawable {
 
     public void setId(int id) {
         this.id = id;
+
+        //Updates the object.
+        this.initialize();
         sendUpdate();
     }
 
@@ -91,8 +97,17 @@ public class WorldObject implements Drawable {
     @Override
     public void draw() {
         if (id != -1) {
-            GameObject.get(id).draw(x, y);
+            Player player = world.getPlayer();
+
+            if (!GameObject.get(id).isGhostObject()) {
+                boolean hasPermissionToSeeAll = player.isXray() ? this.getPermissionLevel(player.getUId()) > 0 : false;
+                GameObject.get(id).draw(x, y, hasPermissionToSeeAll);
+            } else if (this.getPermissionLevel(player.getUId()) >= 2) {
+                Game.batch.setColor(0.2f, 0.4f, 0.5f, 0.6f);
+                GameObject.get(id).draw(x, y, false);
+            }
         }
+        Game.batch.setColor(Color.WHITE);
     }
 
     @Override
@@ -158,23 +173,34 @@ public class WorldObject implements Drawable {
             Iterator townIterator = this.world.getTowns().entrySet().iterator();
             while (townIterator.hasNext()) {
                 Town town = (Town) ((Map.Entry) townIterator.next()).getValue();
-                if (this.rectangle.overlaps(town.getBounds())) {
-                    for (String string : town.getOwnersOfPoint(x, y)) {
-                        if (string.equals(uId)) {
-                            return 3;
-                        }
-                        System.out.println(string.equals(uId));
-                    }
-                    for (String string : town.getBuildersOfPoint(x, y)) {
-                        if (string.equals(uId)) {
-                            return 2;
-                        }
-                    }
-                    for (String string : town.getGuestsOfPoint(x, y)) {
-                        if (string.equals(uId)) {
-                            return 1;
-                        }
-                    }
+
+                //create temporary rectangle if it doesn't have one
+                Rectangle rectangle;
+                if (this.rectangle == null) {
+                    rectangle = new Rectangle(this.x, this.y, 32, 32);
+                } else {
+                    rectangle = this.rectangle;
+                }
+
+                if (rectangle.overlaps(town.getBounds())) {
+                    this.uIdOfTown = town.getuId();
+                }
+            }
+        } else {
+            Town town = world.getTowns().get(this.uIdOfTown);
+            for (String string : town.getOwnersOfPoint(x, y)) {
+                if (string.equals(uId)) {
+                    return 3;
+                }
+            }
+            for (String string : town.getBuildersOfPoint(x, y)) {
+                if (string.equals(uId)) {
+                    return 2;
+                }
+            }
+            for (String string : town.getGuestsOfPoint(x, y)) {
+                if (string.equals(uId)) {
+                    return 1;
                 }
             }
         }

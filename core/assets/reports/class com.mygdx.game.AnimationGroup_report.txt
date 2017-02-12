@@ -1,0 +1,3 @@
+Id: 0    Name: duck    File Name: duck.json
+Id: 0    Name: male_01    File Name: male_01.json
+Id: 0    Name: male_hair_01    File Name: male_hair_01.json

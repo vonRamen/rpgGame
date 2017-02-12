@@ -7,6 +7,7 @@ package com.mygdx.game;
 
 import Persistence.Action;
 import Persistence.GameItem;
+import Persistence.GameObject;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
@@ -83,23 +84,25 @@ public class DroppedItem implements Drawable {
     }
 
     public void update(double deltaTime) {
-        yTime += ySpeed * deltaTime;
-        lerp(yFlow, 16, yTime);
-        if (yDirection == 1) {
-            yFlow = interpolation.apply(yFlow, yTop, yTime);
-        } else {
-            yFlow = interpolation.apply(yFlow, 0, yTime);
-        }
-        if (yFlow > yTop - 0.1) {
-            if (yDirection != -1) {
-                yTime = 0;
+        if (GameItem.get(id).doesBounce()) {
+            yTime += ySpeed * deltaTime;
+            lerp(yFlow, 16, yTime);
+            if (yDirection == 1) {
+                yFlow = interpolation.apply(yFlow, yTop, yTime);
+            } else {
+                yFlow = interpolation.apply(yFlow, 0, yTime);
             }
-            yDirection = -1;
-        } else if (yFlow < 0 + 0.1) {
-            if (yDirection != 1) {
-                yTime = 0;
+            if (yFlow > yTop - 0.1) {
+                if (yDirection != -1) {
+                    yTime = 0;
+                }
+                yDirection = -1;
+            } else if (yFlow < 0 + 0.1) {
+                if (yDirection != 1) {
+                    yTime = 0;
+                }
+                yDirection = 1;
             }
-            yDirection = 1;
         }
         if (isRemoving) {
             this.alpha -= (float) deltaTime;
@@ -185,7 +188,7 @@ public class DroppedItem implements Drawable {
 
     public void sendUpdate() {
         //If the item is received from the server, then don't send it!
-        
+
         GameItem gameItemHold = gameItem;
         Interpolation inter = this.interpolation;
         GameWorld worldHold = world;
@@ -194,8 +197,9 @@ public class DroppedItem implements Drawable {
         this.interpolation = null;
         world = null;
 
-        if(client != null)
+        if (client != null) {
             client.sendTCP(this);
+        }
         this.gameItem = gameItemHold;
         this.interpolation = inter;
         this.world = worldHold;

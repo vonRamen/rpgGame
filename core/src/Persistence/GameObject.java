@@ -21,24 +21,26 @@ import com.mygdx.game.SpriteRelative;
 import com.mygdx.game.WorldObject;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import javafx.scene.effect.Blend;
 
 /**
  *
  * @author kristian
  */
-public class GameObject {
+public class GameObject implements ReportCreatable {
 
-    private static HashMap<Integer, GameObject> gameObjects = new HashMap();
+    private static TreeMap<Integer, GameObject> gameObjects = new TreeMap();
+    private static TreeMap<Integer, GameObject> ghostObjects = new TreeMap();
     private static ArrayList<TextureRegion> objectSprites = new ArrayList();
+    private static ArrayList<TextureRegion> objectSilhuetes = new ArrayList();
     private static String path = "objects/";
     private static final KJson JSONHANDLER = new KJson();
 
     /**
      * @return the gameObjects
      */
-    public static HashMap<Integer, GameObject> getGameObjects() {
+    public static TreeMap<Integer, GameObject> getGameObjects() {
         return gameObjects;
     }
 
@@ -64,7 +66,17 @@ public class GameObject {
     protected int id;
     protected Rectangle rectangle;
     protected ArrayList<Action> actions;
-    private float zIndex;
+    protected String fileName;
+    
+    private float zIndex = 0;
+
+    //If the object is created through building stuff, then
+    //create a ghost object
+    private boolean isBuilt;
+    private boolean hideWhenNear;
+    private boolean isGhostObject;
+    private int requiredConstructionLevel;
+    protected ArrayList<DropItem> itemsRequired;
 
     public GameObject(String name) {
         this.name = name;
@@ -81,13 +93,53 @@ public class GameObject {
         rectangle = new Rectangle(0, 0, 32, 32);
     }
 
+    private void generateGhostObject() {
+        GameObject ghostObject = new GameObject(this.name);
+        ghostObject.itemsRequired = this.itemsRequired;
+        ghostObject.sprites = this.sprites;
+        ghostObject.zIndex = this.zIndex;
+        ghostObject.description = "A 'ghost' structure. It doesn't exist, but the concept is there!";
+        ghostObject.id = GameObject.gameObjects.size();
+        ghostObject.isGhostObject = true;
+
+        //Generate actions!
+        Action build = new Action();
+        build.setItemTakes(itemsRequired);
+        build.setName("Build");
+        build.setPermissionLevel(2); //2 = builder
+        build.setTransformIntoId(this.id);
+        build.setBaseTime(2);
+        build.setRequiredSkill("construction");
+        build.setRequiredLevel(requiredConstructionLevel);
+
+        Action remove = new Action();
+        remove.setName("Remove");
+        remove.setTransformIntoId(-1);
+        remove.setPermissionLevel(3); //3 = owner
+
+        ghostObject.actions = new ArrayList();
+        ghostObject.actions.add(build);
+        ghostObject.actions.add(remove);
+
+        GameObject.ghostObjects.put(ghostObject.id, ghostObject);
+        GameObject.gameObjects.put(ghostObject.id, ghostObject);
+    }
+
     public static void load() {
         FileHandle fileHandler = Gdx.files.internal(path + "data/");
         Json json = new Json();
         for (FileHandle file : fileHandler.list()) {
             GameObject object = json.fromJson(GameObject.class, file);
+            object.fileName = file.name();
             System.out.println("object id " + object.id);
             gameObjects.put(object.id, object);
+        }
+
+        //generate ghost objects:
+        for (GameObject object : new Utility.KUtility<GameObject>().getArrayListOfMap(gameObjects)) {
+            if (object.isBuilt) {
+                object.generateGhostObject();
+            }
         }
     }
 
@@ -96,10 +148,33 @@ public class GameObject {
         int xx = (int) (texture.getWidth() / 32);
         int yy = (int) (texture.getHeight() / 32);
 
+        int count = 0;
         for (int iy = 0; iy < yy; iy++) {
             for (int ix = 0; ix < xx; ix++) {
                 TextureRegion txt = new TextureRegion(texture, ix * 32, iy * 32, 32, 32);
+
+                //create silhuetes
+                txt.getTexture().getTextureData().prepare();
+                Pixmap full = txt.getTexture().getTextureData().consumePixmap();
+                Pixmap area = new Pixmap(32, 32, Pixmap.Format.RGB888);
+                for (int yPixel = 0; yPixel < 32; yPixel++) {
+                    for (int xPixel = 0; xPixel < 32; xPixel++) {
+                        int pixel = full.getPixel(xPixel + ix * 32, yPixel + iy * 32);
+                        if (pixel != 0) {
+                            Color color = new Color(pixel);
+                            float colorStrength = (color.r + color.g + color.b) / 3 + 0.7f;
+                            if (colorStrength > 1) {
+                                colorStrength = 1;
+                            }
+                            Color newColor = new Color(colorStrength, colorStrength, colorStrength, colorStrength);
+                            area.drawPixel(xPixel, yPixel, newColor.toIntBits());
+                        }
+                    }
+                }
+
+                TextureRegion txtWhite = new TextureRegion(new Texture(area));
                 objectSprites.add(txt);
+                objectSilhuetes.add(txtWhite);
             }
         }
         load();
@@ -133,18 +208,45 @@ public class GameObject {
         return getObjectSprites().get(id);
     }
 
-    public void draw(int x, int y) {
-        for (SpriteRelative spriteShadow : sprites) {
-            //draw shadows.
-            if (zIndex != -1) {
-                Game.batch.setColor(0, 0, 0, 0.4f);
-                Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
-                Game.batch.setColor(Color.WHITE);
+    /**
+     *
+     * @param x
+     * @param y
+     * @param drawLess remove walls and such, to be able to see shit?
+     */
+    public void draw(int x, int y, boolean drawLess) {
+        if (this.hideWhenNear == false) {
+            drawLess = false;
+        }
+        if (!drawLess) {
+            for (SpriteRelative spriteShadow : sprites) {
+                //draw shadows.
+                if (zIndex != -1 && !isGhostObject) {
+                    Game.batch.setColor(0, 0, 0, 0.4f);
+                    Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
+                    Game.batch.setColor(Color.WHITE);
+                }
             }
         }
-        for (SpriteRelative sprites : sprites) {
-            //draw the actual sprites
-            Game.batch.draw(objectSprites.get(sprites.getTextureId()), x + sprites.getxRelative(), y + sprites.getyRelative());
+        ArrayList<TextureRegion> listToChoose;
+        if (isGhostObject) {
+            listToChoose = objectSilhuetes;
+        } else {
+            listToChoose = objectSprites;
+        }
+        if (!drawLess) {
+            for (SpriteRelative sprites : sprites) {
+                //draw the actual sprites
+                Game.batch.draw(listToChoose.get(sprites.getTextureId()), x + sprites.getxRelative(), y + sprites.getyRelative());
+            }
+        }
+        if (drawLess) {
+            if (zIndex == 0) {
+                Game.batch.draw(listToChoose.get(sprites.get(0).getTextureId()), x, y);
+            }
+            if (zIndex == 5) {
+
+            }
         }
     }
 
@@ -175,10 +277,7 @@ public class GameObject {
     }
 
     public static GameObject get(int id) {
-        if (gameObjects.size() > id) {
-            return gameObjects.get(id);
-        }
-        return null;
+        return gameObjects.get(id);
     }
 
     public Rectangle getBounds() {
@@ -208,5 +307,33 @@ public class GameObject {
      */
     public float getzIndex() {
         return zIndex;
+    }
+
+    @Override
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    @Override
+    public ArrayList<? extends ReportCreatable> getAll() {
+        return new Utility.KUtility<GameObject>().getArrayListOfMap(gameObjects);
+    }
+
+    /**
+     * @return the isGhostObject
+     */
+    public boolean isGhostObject() {
+        return isGhostObject;
+    }
+
+    public static ArrayList<GameObject> getAllGhostObjects() {
+        ArrayList<GameObject> returnList = new ArrayList();
+        for (GameObject gameObject : new Utility.KUtility<GameObject>().getArrayListOfMap(gameObjects)) {
+            if (gameObject.isGhostObject) {
+                returnList.add(gameObject);
+            }
+        }
+
+        return returnList;
     }
 }

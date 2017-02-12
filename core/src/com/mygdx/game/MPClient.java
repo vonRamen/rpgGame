@@ -30,7 +30,7 @@ public class MPClient {
     public MPClient(int port, GameWorld world, String playerName, String playerPassword) {
         this.playerName = playerName;
         this.playerPassword = playerPassword;
-        client = new Client(10000, 10000);
+        client = new Client(10000, 20000);
         registerPackets();
         client.addListener(new ClientListener(getClient(), world, playerName));
         client.start();
