@@ -40,6 +40,7 @@ public class GameWorld {
     private ArrayList<Drawable> drawOrder;
     private ArrayList<DroppedItem> droppedItems;
     private ArrayList<Object> objectsToBeAdded; //This list is going to solve the sync problem..
+    private ArrayList<Object> objectsToBeRemoved;
     private HashMap<String, Town> towns;
     private DepthComparator depthComparator;
     private OrthographicCamera camera;
@@ -47,6 +48,7 @@ public class GameWorld {
     private String path;
     private World world;
     private Client client;
+    private Time time;
 
     public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
         this.camera = camera;
@@ -54,7 +56,9 @@ public class GameWorld {
         this.chunks = new ArrayList();
         this.drawOrder = new ArrayList();
         this.droppedItems = new ArrayList();
+        this.objectsToBeRemoved = new ArrayList();
         this.towns = new HashMap();
+        this.time = new Time(8*60);
         size = 5;
         fieldOfView = 1;
         if (isServer) {
@@ -256,8 +260,8 @@ public class GameWorld {
     public void update() {
         //update music fadeout and such..
         Sound2D.updateMusic(deltaTime);
-
         deltaTime = Gdx.graphics.getDeltaTime();
+        this.time.update(deltaTime);
         updateEntities();
         try {
             Collections.sort(drawOrder, depthComparator);
@@ -291,7 +295,7 @@ public class GameWorld {
             //update objects in region:
             Iterator objectIterator = chunk.getWorldObjects().iterator();
             int removedObjectCount = 0;
-            ArrayList<WorldObject> objectsToBeRemoved = new ArrayList();
+            this.objectsToBeRemoved.clear();
             while (objectIterator.hasNext()) {
                 WorldObject object = (WorldObject) objectIterator.next();
                 if (chunk.getClientControlling().equals(player.uId)) {
@@ -488,6 +492,10 @@ public class GameWorld {
 
     public void addObjectToBeAdded(Object o) {
         this.objectsToBeAdded.add(o);
+    }
+    
+    public void removeObject(Object o) {
+        this.objectsToBeRemoved.add(o);
     }
 
     public void addReceivedObjects() {

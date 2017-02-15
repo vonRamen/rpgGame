@@ -38,8 +38,8 @@ public class PathFinder {
     public void update() {
         if (queue.size() > 0 || currentGoal != null) {
             if (currentGoal == null) {
-                currentGoal = queue.pop();
-            }
+                currentGoal = queue.pop(); 
+           }
 
             int dirX = (currentGoal.getX() - entity.getX() > 0) ? 1 : -1;
             int dirY = (currentGoal.getY() - entity.getY() > 0) ? 1 : -1;

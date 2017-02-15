@@ -202,10 +202,7 @@ public class Human extends Entity {
             }
             if (!alreadyHit) {
                 //add force and damage:
-                System.out.println("damage");
                 float ang = (float) Math.atan2(entity.getY() - y, entity.getX() - x);
-                System.out.println("");
-                System.out.println(ang);
                 entity.damageThis(ang, Weapon.get(weapon).getDamage(), Weapon.get(weapon).getKnockback());
                 enemiesHit.add(entity);
             }
@@ -337,7 +334,6 @@ public class Human extends Entity {
     }
 
     public void setPath(int x, int y) {
-        //System.out.println("Path x: "+x +" Path y: "+y);
         this.pathFinder = new PathFinder(this, this.x, this.y, x, y);
     }
 }

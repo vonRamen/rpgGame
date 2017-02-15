@@ -1,3 +1,3 @@
 {sprites:[{textureId:5,xRelative:-32,yRelative:0},{textureId:6,xRelative:0,yRelative:0},{textureId:7,xRelative:32,yRelative:0}],name:Stump,rectangle:{height:32,width:32,x:0,y:0},id:3, isRespawnObject:true, isRespawningInto:0, respawnTime:45
-actions:[{name:remove,doesTransform:true,transformIntoId:-1,doesDrop:false, baseTime:10,requiredSkill:woodcutting,requiredLevel:1, expGain:35, soundEffect:wood_chop.mp3,soundIsLooping:true,maxDistance:10000, permissionLevel:3}]
+actions:[{name:remove,doesTransform:true,transformIntoId:-1,doesDrop:false, baseTime:10,requiredSkill:woodcutting,requiredLevel:1, expGain:35, soundEffect:wood_chop.ogg,soundIsLooping:true,maxDistance:10000, permissionLevel:3}]
 }

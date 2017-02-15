@@ -52,6 +52,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected TextureRegion currentFrame;
     protected BodyDef bodyDef;
     protected Rectangle bounds;
+    private Rectangle fieldOfView; //field of view for entities and mobs.
     protected Animation animation;
     protected GameWorld world;
     protected String uId;
@@ -59,6 +60,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected ExtraCommand extraCommand = ExtraCommand.NONE;
     protected Inventory inventory;
     protected EntityState state;
+    protected boolean remove;
 
     public Entity(GameWorld world) {
         this.world = world;
@@ -78,7 +80,7 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public Entity() {
-
+        this.addBounds();
     }
 
     public void attack() {
@@ -87,11 +89,22 @@ public abstract class Entity implements Drawable, Cloneable {
 
     protected void addBounds() {
         bounds = new Rectangle(x + boundsPattingX, y + boundsPattingY, 22, 22);
+        this.fieldOfView = new Rectangle(x - 100, y - 100, 200, 200);
     }
 
     public void update(double deltaTime) {
+        if (this.remove) {
+            fadeout();
+            if (this.alpha <= 0) {
+                this.alpha = 0;
+                this.remove();
+            }
+        } else if (this.alpha < 1) {
+            this.alpha += deltaTime;
+        } else {
+            this.alpha = 1;
+        }
         animationHandler();
-        
 
         //Reset state
         state = EntityState.IDLE;
@@ -104,35 +117,35 @@ public abstract class Entity implements Drawable, Cloneable {
         if ((changeX != 0 || changeY != 0)) {
             move(changeX, changeY);
         }
-        
+
         //Apply state
         if (this.getOnTile() == 0) {
             state = EntityState.SWIMMING;
         }
-        
+
         //Spawn alpha
-        if(this.alpha < 1) {
-            this.alpha+=deltaTime;
-        } else if(this.alpha > 1) {
-            this.alpha = 1;
-        }
     }
 
-    public ArrayList<Drawable> checkDrawableCollision() {
+    public ArrayList<Drawable> checkDrawableCollision(Rectangle rect) {
+        if (rect == null) {
+            return new ArrayList();
+        }
         ArrayList<Drawable> objects = world.getDrawable();
         ArrayList<Drawable> returnObjects = new ArrayList();
         boolean isColliding = false;
         for (Drawable e : objects) {
             if (e instanceof Entity) {
                 Entity entity = (Entity) e;
-                if (bounds.overlaps(entity.bounds) && !e.equals(bounds) && !e.equals(this)) {
-                    returnObjects.add(e);
+                if (entity.bounds != null) {
+                    if (rect.overlaps(entity.bounds) && !e.equals(rect) && !e.equals(this)) {
+                        returnObjects.add(e);
+                    }
                 }
             }
             if (e instanceof WorldObject) {
                 WorldObject worldObject = (WorldObject) e;
                 if (worldObject.rectangle != null) {
-                    if (bounds.overlaps(worldObject.rectangle)) {
+                    if (rect.overlaps(worldObject.rectangle)) {
                         returnObjects.add(e);
                     }
                 }
@@ -142,9 +155,15 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public ArrayList<Entity> checkEntityCollision(Rectangle rect) {
+        if (rect == null) {
+            return new ArrayList();
+        }
         ArrayList<Entity> returnObjects = new ArrayList();
         ArrayList<Entity> objects = world.getEntities();
         for (Entity entity : objects) {
+            if (entity.bounds == null) {
+                continue;
+            }
             if (rect.overlaps(entity.bounds) && !entity.equals(this) && !entity.equals(rect)) {
                 returnObjects.add(entity);
             }
@@ -163,10 +182,14 @@ public abstract class Entity implements Drawable, Cloneable {
             float angle = (float) Math.atan2(change_y, change_x);
             float direction_x = (float) Math.cos(angle);
             float direction_y = (float) Math.sin(angle);
-            bounds.x = x + boundsPattingX + change_x * 5;
-            bounds.y = y + boundsPattingY + change_y * 5;
+            if (bounds != null) {
+                bounds.x = x + boundsPattingX + change_x * 5;
+                bounds.y = y + boundsPattingY + change_y * 5;
+            }
+            this.fieldOfView.x = this.x;
+            this.fieldOfView.y = this.y;
 
-            ArrayList<Drawable> objects = checkDrawableCollision();
+            ArrayList<Drawable> objects = checkDrawableCollision(bounds);
             if (objects.isEmpty()) {
                 //Check tiles in current Chunk
                 x += (direction_x * speed) * deltaTime;
@@ -183,7 +206,7 @@ public abstract class Entity implements Drawable, Cloneable {
         }
         //If attacked, knockback
         if (forceSpeed != 0) {
-            ArrayList<Drawable> objects = checkDrawableCollision();
+            ArrayList<Drawable> objects = checkDrawableCollision(bounds);
             if (objects.isEmpty()) {
                 float dir_x = (float) Math.cos(forceDir);
                 float dir_y = (float) Math.sin(forceDir);
@@ -201,7 +224,6 @@ public abstract class Entity implements Drawable, Cloneable {
         }
         //If hit by a weapon:
         if (forceSpeed != 0) {
-            System.out.println((strength + (strength - forceSpeed / 2)));
             forceSpeed -= ((strength + (strength - forceSpeed / 10)) * deltaTime);
             if (forceSpeed <= 0) {
                 forceSpeed = 0;
@@ -256,14 +278,17 @@ public abstract class Entity implements Drawable, Cloneable {
         changeY = 0;
         forceSpeed = power;
         forceDir = direction;
+        this.addPush(direction, power);
         //        x += dir_x * power * deltaTime;
         //        y += dir_y * power * deltaTime;
         updateBounds();
     }
 
     protected void updateBounds() {
-        bounds.x = x + boundsPattingX;
-        bounds.y = y + boundsPattingY;
+        if (bounds != null) {
+            bounds.x = x + boundsPattingX;
+            bounds.y = y + boundsPattingY;
+        }
     }
 
     public void setAnimation(String animationName, int dir, EntityState state) {
@@ -301,9 +326,10 @@ public abstract class Entity implements Drawable, Cloneable {
     @Override
     public void draw() {
         if (animation != null) {
-            float shadowAlpha = 0.4f - (1-this.alpha);
-            if(shadowAlpha < 0)
+            float shadowAlpha = 0.4f - (1 - this.alpha);
+            if (shadowAlpha < 0) {
                 shadowAlpha = 0;
+            }
             Game.batch.setColor(0, 0, 0, shadowAlpha);
             Game.batch.draw(currentFrame, x, y - 4);
             Game.batch.setColor(1, 1, 1, this.alpha);
@@ -408,13 +434,13 @@ public abstract class Entity implements Drawable, Cloneable {
             }
         }
     }
-    
+
     public boolean solidAtLocation(int x, int y) {
         Rectangle rect = new Rectangle(x, y, 32, 32);
         int chunkX = (int) x / (32 * 32);
         int chunkY = (int) y / (32 * 32);
-        int localX = (int) (x % (32*32));
-        int localY = (int) (y % (32*32));
+        int localX = (int) (x % (32 * 32));
+        int localY = (int) (y % (32 * 32));
         int tileX = (int) (localX / 32);
         int tileY = (int) (localY / 32);
         Chunk chunk = world.getChunk(chunkX, chunkY);
@@ -428,13 +454,13 @@ public abstract class Entity implements Drawable, Cloneable {
      */
     public int getOnTile() {
         Chunk currentChunk = this.world.getChunk(this.getChunkX(), this.getChunkY());
-        float relativeX = (this.x - (getChunkX() * 32 * 32))+16;
+        float relativeX = (this.x - (getChunkX() * 32 * 32)) + 16;
         float relativeY = (this.y - (getChunkY() * 32 * 32));
 
         int tileX = (int) relativeX / 32;
         int tileY = (int) relativeY / 32;
 
-        if (currentChunk == null || tileX < 0 || tileY < 0|| tileX > 31 || tileY > 31) {
+        if (currentChunk == null || tileX < 0 || tileY < 0 || tileX > 31 || tileY > 31) {
             return -1;
         }
 
@@ -508,7 +534,7 @@ public abstract class Entity implements Drawable, Cloneable {
     public void setChunkYLastOn(int chunkYLastOn) {
         this.chunkYLastOn = chunkYLastOn;
     }
-    
+
     @Override
     public ArrayList<Action> getActions() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -518,8 +544,53 @@ public abstract class Entity implements Drawable, Cloneable {
     public ArrayList<Action> getActions(String uId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     public float getZ() {
         return this.z;
+    }
+
+    /**
+     * @return the fieldOfView
+     */
+    public Rectangle getFieldOfView() {
+        return fieldOfView;
+    }
+
+    /**
+     * @param fieldOfView the fieldOfView to set
+     */
+    public void setFieldOfView(Rectangle fieldOfView) {
+        this.fieldOfView = fieldOfView;
+    }
+
+    /**
+     * This method checks, if another entity has been seen by this entity
+     *
+     * @return empty list if not found, Entity if found.
+     */
+    public ArrayList<Entity> checkView() {
+        ArrayList<Entity> entities = new ArrayList();
+        for (Drawable d : checkDrawableCollision(this.fieldOfView)) {
+            if (d instanceof Entity) {
+                entities.add((Entity) d);
+            }
+        }
+        return entities;
+    }
+
+    public void flagRemoval() {
+        this.remove = true;
+    }
+
+    private void fadeout() {
+        this.alpha -= deltaTime / 5;
+    }
+
+    public void remove() {
+        this.world.removeObject(this);
+    }
+    
+    public void sendUpdate() {
+        this.world.getClient().sendTCP(this);
     }
 }

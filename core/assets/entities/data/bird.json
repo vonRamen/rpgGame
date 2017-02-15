@@ -1,4 +1,4 @@
 {
 	name:bird, animationGroup:duck, ai:BirdAI, entityType:bird,
-	alignment:1, hp:20, id:0, speed:50, boundsWidth:8, boundsHeight:8, startingZ:300
+	alignment:0, hp:20, id:0, speed:50, boundsWidth:8, boundsHeight:8, startingZ:300
 }

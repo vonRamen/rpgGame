@@ -18,6 +18,7 @@ import com.mygdx.game.Drawable;
 import com.mygdx.game.Player;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  *
@@ -26,9 +27,10 @@ import java.util.HashMap;
 public class Sound2D {
 
     private Sound sound;
+    private Random random;
     private Vector2 playerPosition, objectPosition;
     private boolean isPlaying;
-    private float angle;
+    private double angle;
     private long soundId;
     private float distance;
 
@@ -44,6 +46,7 @@ public class Sound2D {
         FileHandle fileHandle = Gdx.files.internal(path + "sounds/" + soundName);
         Json json = new Json();
         this.sound = Gdx.audio.newSound(fileHandle);
+        this.random = new Random();
     }
 
     public void play(Drawable obj1, Drawable obj2, boolean loop) {
@@ -53,15 +56,30 @@ public class Sound2D {
         } else {
             soundId = this.sound.play();
         }
-        playerPosition = new Vector2(obj1.getX(), obj1.getY());
-        objectPosition = new Vector2(obj2.getX(), obj2.getY());
-        //update panning according to the coordinates
-        angle = playerPosition.angle(objectPosition);
-        distance = playerPosition.dst2(objectPosition);
+        float randomPitch = (random.nextFloat() * 30) / 100;
+        float pan, volumen;
+        if (obj1 != obj2) {
+            playerPosition = new Vector2(obj1.getX(), obj1.getY());
+            objectPosition = new Vector2(obj2.getX(), obj2.getY());
+            //update panning according to the coordinates
+            angle = Math.atan2(objectPosition.y - playerPosition.y, objectPosition.x - playerPosition.x);
 
-        float volumen = 1 - (distance / 300);
-        System.out.println("Volumen: " + volumen);
-        sound.setPan(1, 0, volumen);
+            distance = playerPosition.dst(objectPosition);
+
+            volumen = 1 - (distance / 300);
+            if (volumen < 0) {
+                volumen = 0;
+            }
+            pan = (float) (Math.abs(angle) / Math.PI);
+            pan = 1 - pan * 2;
+            if (pan < -1) {
+                pan = -1;
+            }
+        } else {
+            pan = 0f;
+            volumen = 1f;
+        }
+        sound.setPan(this.soundId, pan, volumen);
     }
 
     public void stop() {
@@ -87,14 +105,14 @@ public class Sound2D {
                     try {
                         currentSong.play();
                         currentSong.setLooping(true);
-                    } catch(GdxRuntimeException exception) {
+                    } catch (GdxRuntimeException exception) {
                         currentSong.setVolume(1.0f);
                         isMusicPlaying = false;
                     }
                 }
             } else if (songQueue.size() > 1) {
                 currentSong.setVolume(currentSong.getVolume() - (float) deltaTime);
-                if(currentSong.getVolume() <= 0) {
+                if (currentSong.getVolume() <= 0) {
                     songQueue.remove(0);
                     isMusicPlaying = false;
                     currentSong.setVolume(1);

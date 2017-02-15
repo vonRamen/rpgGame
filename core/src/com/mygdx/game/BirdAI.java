@@ -16,11 +16,9 @@ public class BirdAI extends AI {
     private float maxWaitTime;
     private float waitTime;
     private float maxDistance;
-    Random random;
 
     public BirdAI() {
         super();
-        random = new Random();
         maxWaitTime = 5;
         maxDistance = 100;
     }
@@ -28,28 +26,40 @@ public class BirdAI extends AI {
     @Override
     public void update(double deltaTime) {
         super.update(deltaTime);
+    }
+
+    @Override
+    protected void updateOnDefault(double deltaTime) {
         if (waitTime > 0) {
             waitTime -= deltaTime;
         } else {
-            Point point = getRandomPointDistance(maxDistance * random.nextFloat());
+            Point point = getRandomPointDistance(maxDistance * this.getRandom().nextFloat());
             this.pathfinder = new PathFinder(this.entity, this.entity.getX(), this.entity.getY(), point.getX(), point.getY());
-            waitTime = random.nextFloat() * maxWaitTime;
+            waitTime = this.getRandom().nextFloat() * maxWaitTime;
+            if (entity.checkView().size() > 0) {
+                setState(MobState.ALERTED);
+            }
         }
-        if(entity.z > 0) {
-            entity.z -= deltaTime*100;
+        if (entity.z > 0) {
+            entity.z -= deltaTime * 100;
             entity.state = EntityState.get(3);
+        } else {
+            entity.z = 0;
         }
     }
 
-    Point getRandomPointDistance(float distance) {
-        int x = (int) this.entity.x;
-        int y = (int) this.entity.y;
-
-        float angle = random.nextFloat() * 360;
-        float direction_x = (float) Math.cos(angle);
-        float direction_y = (float) Math.sin(angle);
-
-        Point point = new Point(x + direction_x * distance, y + direction_y * distance);
-        return point;
+    @Override
+    protected void updateOnAlerted(double deltaTime) {
+        this.pathfinder = null;
+        entity.state = EntityState.get(3);
+        entity.z += deltaTime * 200;
+        entity.flagRemoval();
+        entity.bounds = null;
     }
+
+    @Override
+    protected void updateOnIdle(double deltaTime) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

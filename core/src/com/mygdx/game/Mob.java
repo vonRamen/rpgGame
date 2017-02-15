@@ -6,6 +6,7 @@
 package com.mygdx.game;
 
 import Persistence.Action;
+import Persistence.DropItem;
 import Persistence.GameEntity;
 import com.badlogic.gdx.math.Rectangle;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class Mob extends Entity {
     private AI ai;
     private GameEntity entity;
     private int damage;
+    private ArrayList<DropItem> dropsOnDeath;
     
     public Mob(int id, int x, int y) {
         entity = GameEntity.get(id);
@@ -59,5 +61,4 @@ public class Mob extends Entity {
     public ArrayList<Action> getActions() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
 }
