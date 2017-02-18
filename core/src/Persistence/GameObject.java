@@ -57,7 +57,7 @@ public class GameObject implements ReportCreatable {
     public static String getPath() {
         return path;
     }
-    protected ArrayList<SpriteRelative> sprites;
+    private ArrayList<SpriteRelative> sprites;
     protected String name;
     protected String description;
     private float respawnTime;
@@ -96,7 +96,7 @@ public class GameObject implements ReportCreatable {
     private void generateGhostObject() {
         GameObject ghostObject = new GameObject(this.name);
         ghostObject.itemsRequired = this.itemsRequired;
-        ghostObject.sprites = this.sprites;
+        ghostObject.sprites = this.getSprites();
         ghostObject.zIndex = this.zIndex;
         ghostObject.description = "A 'ghost' structure. It doesn't exist, but the concept is there!";
         ghostObject.id = GameObject.gameObjects.size();
@@ -219,7 +219,7 @@ public class GameObject implements ReportCreatable {
             drawLess = false;
         }
         if (!drawLess) {
-            for (SpriteRelative spriteShadow : sprites) {
+            for (SpriteRelative spriteShadow : getSprites()) {
                 //draw shadows.
                 if (zIndex != -1 && !isGhostObject) {
                     Game.batch.setColor(0, 0, 0, 0.4f);
@@ -235,14 +235,14 @@ public class GameObject implements ReportCreatable {
             listToChoose = objectSprites;
         }
         if (!drawLess) {
-            for (SpriteRelative sprites : sprites) {
+            for (SpriteRelative sprites : getSprites()) {
                 //draw the actual sprites
                 Game.batch.draw(listToChoose.get(sprites.getTextureId()), x + sprites.getxRelative(), y + sprites.getyRelative());
             }
         }
         if (drawLess) {
             if (zIndex == 0) {
-                Game.batch.draw(listToChoose.get(sprites.get(0).getTextureId()), x, y);
+                Game.batch.draw(listToChoose.get(getSprites().get(0).getTextureId()), x, y);
             }
             if (zIndex == 5) {
 
@@ -335,5 +335,12 @@ public class GameObject implements ReportCreatable {
         }
 
         return returnList;
+    }
+
+    /**
+     * @return the sprites
+     */
+    public ArrayList<SpriteRelative> getSprites() {
+        return sprites;
     }
 }

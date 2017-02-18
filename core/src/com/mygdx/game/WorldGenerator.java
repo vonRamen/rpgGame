@@ -7,12 +7,24 @@ package com.mygdx.game;
 
 import Persistence.GameObject;
 import Persistence.NoiseGenerator;
+import Persistence.Tile;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Json;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -68,10 +80,10 @@ public class WorldGenerator extends Thread {
     }
 
     public void run() {
-        generate(w, h);
+        generate();
     }
 
-    public void generate(int w, int h) {
+    public void generate() {
         worldObjects = new ArrayList();
         tiles = new int[32 * h][32 * w];
         log("Generating world by the given noise");
@@ -83,7 +95,7 @@ public class WorldGenerator extends Thread {
             generateByNoise(tiles);
         } while (this.evaluate(2, 70f, 85f) != true);
         log("Placing water straight from corner to corner to test");
-        generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4);
+        //generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4);
 
         //places 10 percent trees randomly:
         placeByPercentage(0, 5f, 2);
@@ -176,7 +188,7 @@ public class WorldGenerator extends Thread {
                 }
             }
             if (count % 1000 == 0) {
-                log(count+ " placed of id: "+id);
+                log(count + " placed of id: " + id);
             }
         }
         System.out.println("Trees planted: " + count);
@@ -246,8 +258,8 @@ public class WorldGenerator extends Thread {
 
                 //set objects
                 for (WorldObject worldObject : worldObjects) {
-                    if (((int) worldObject.x / (32 * 32)) == x &&
-                            ((int) worldObject.y / (32 * 32) == y)) {
+                    if (((int) worldObject.x / (32 * 32)) == x
+                            && ((int) worldObject.y / (32 * 32) == y)) {
                         worldObject.rectangle = null;
                         worldObject.uId = null;
                         chunk.addObject(worldObject);
@@ -316,5 +328,48 @@ public class WorldGenerator extends Thread {
         String returnString = generationLog.get(0);
         generationLog.remove(0);
         return "Generating: " + returnString + "\n";
+    }
+
+    public void generateImage() {
+        Collections.sort(this.worldObjects, new DepthComparator());
+        BufferedImage image = new BufferedImage(w * 32 * 32, h * 32 * 32, BufferedImage.TYPE_INT_ARGB);
+        Pixmap newPix = new Pixmap(w * 32 * 32, h * 32 * 32, Pixmap.Format.RGBA8888);
+        TextureRegion tile = Tile.get(tiles[0][0]).getTileTextureRegion();
+        tile.getTexture().getTextureData().prepare();
+        Pixmap tileMap = tile.getTexture().getTextureData().consumePixmap();
+        for (int y = 0; y < this.h * 32; y++) {
+            for (int x = 0; x < this.w * 32; x++) {
+                for (int tileY = 0; tileY < 32; tileY++) {
+                    for (int tileX = 0; tileX < 32; tileX++) {
+                        int c = tileMap.getPixel(tileX + (tiles[y][x] % 16) * 32 + 32, tileY + (tiles[y][x] / 16) * 32);
+                        newPix.drawPixel(x * 32 + tileX, (h * 32 * 32) - y * 32 + tileY - 32, c);
+                    }
+                }
+            }
+        }
+
+        Texture objectSprite = GameObject.getSprite(0).getTexture();
+        objectSprite.getTextureData().prepare();
+        Pixmap objMap = objectSprite.getTextureData().consumePixmap();
+        for (WorldObject object : this.worldObjects) {
+            int objPositionX = (int) object.getX();
+            int objPositionY = (int) object.getY();
+            for (SpriteRelative rel : GameObject.get(object.id).getSprites()) {
+                for (int y = 0; y < 32; y++) {
+                    for (int x = 0; x < 32; x++) {
+                        int c = objMap.getPixel(x + (rel.getTextureId() % 20) * 32, y + (rel.getTextureId() / 20) * 32);
+                        Color color = new Color(c);
+                        if (color.a == 0) {
+                            continue;
+                        }
+                        newPix.drawPixel(x + objPositionX + rel.getxRelative(), (h*32*32) - objPositionY + y - rel.getyRelative(), c
+                        );
+                    }
+                }
+            }
+        }
+        FileHandle fileH = Gdx.files.local("worldMap.png");
+        PixmapIO.writePNG(fileH, newPix);
+        fileH.write(true);
     }
 }

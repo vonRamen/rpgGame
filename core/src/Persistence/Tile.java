@@ -29,7 +29,15 @@ public class Tile implements ReportCreatable {
 
     private static String path = "tiles/";
     private static ArrayList<TextureRegion> sprites = new ArrayList();
+    private static Texture wholeTileSet;
     private static TreeMap<Integer, Tile> tiles;
+
+    /**
+     * @return the wholeTileSet
+     */
+    public static Texture getWholeTileSet() {
+        return wholeTileSet;
+    }
     private Animation spriteAnimation;
     private ArrayList<Integer> animationIds;
     private float animationSpeed;
@@ -53,14 +61,14 @@ public class Tile implements ReportCreatable {
     }
 
     public static void load() {
-        Texture texture = new Texture(path+"standardTileSet.png");
+        wholeTileSet = new Texture(path+"standardTileSet.png");
         tiles = new TreeMap();
-        int xx = (int) (texture.getWidth() / 32);
-        int yy = (int) (texture.getHeight() / 32);
+        int xx = (int) (getWholeTileSet().getWidth() / 32);
+        int yy = (int) (getWholeTileSet().getHeight() / 32);
 
         for (int iy = 0; iy < yy; iy++) {
             for (int ix = 0; ix < xx; ix++) {
-                TextureRegion textureR = new TextureRegion(texture, ix * 32, iy * 32, 32, 32);
+                TextureRegion textureR = new TextureRegion(getWholeTileSet(), ix * 32, iy * 32, 32, 32);
                 sprites.add(textureR);
             }
         }
@@ -123,6 +131,10 @@ public class Tile implements ReportCreatable {
     
     public void draw(float deltaTime, int x, int y) {
         Game.batch.draw(spriteAnimation.getKeyFrame(deltaTime), x, y);
+    }
+    
+    public TextureRegion getTileTextureRegion() {
+        return spriteAnimation.getKeyFrame(0);
     }
 
     @Override
