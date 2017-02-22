@@ -109,8 +109,6 @@ public class GUIStage extends Stage {
             //check alerts:
             checkAlert();
 
-            this.inventory.updatePositioning(camera);
-            this.townManagement.updatePositioning(camera);
             super.act();
             if (isDrawing) {
             }
@@ -122,10 +120,6 @@ public class GUIStage extends Stage {
                 if (!player.isIsDead()) {
                     inputHandling();
                 }
-            }
-            //update message positioning:
-            if (this.screenMessages.getChildren().size > 0) {
-                this.screenMessages.setPosition(camera.position.x - Gdx.graphics.getWidth() / 2, camera.position.y - Gdx.graphics.getHeight() / 2);
             }
         } else {
             //See if world has a player to control..
@@ -199,26 +193,22 @@ public class GUIStage extends Stage {
     public boolean keyUp(int keycode) {
         super.keyUp(keycode);
         if (this.getKeyboardFocus() == null) {
-            if (keycode == Input.Keys.I) {
+            if (keycode == Game.settings.getKeybindings().toggleInventory) {
                 toggleInventory();
             }
-            if (keycode == Input.Keys.B) {
+            if (keycode == Game.settings.getKeybindings().toggleTownMenu) {
                 townManagement.toggle();
             }
-            if (keycode == Input.Keys.Q) {
+            if (keycode == Game.settings.getKeybindings().toggleCombatMode) {
                 combatMode = !combatMode;
             }
-            if (keycode == Input.Keys.P) {
-                this.isDrawing = !this.isDrawing;
-                System.out.println("Drawing off.");
-            }
-            if (keycode == Input.Keys.Z) {
+            if (keycode == Game.settings.getKeybindings().pickUpItem) {
                 if (inventory != null) {
                     this.player.pickup();
                     this.inventory.update();
                 }
             }
-            if (keycode == Input.Keys.R) {
+            if (keycode == Game.settings.getKeybindings().toggleWalls) {
                 if (player != null) {
                     player.setXray(!player.isXray());
                 }
@@ -289,7 +279,7 @@ public class GUIStage extends Stage {
         }
         if (player != null) {
 
-            this.rightClickMenu.setPosition(this.rightClickMenu.getX() + camera.position.x - this.getViewport().getScreenWidth() / 2, this.rightClickMenu.getY() + camera.position.y - this.getViewport().getScreenHeight() / 2);
+            this.rightClickMenu.setPosition(this.rightClickMenu.getX() + this.rightClickMenu.getWidth()/2, this.rightClickMenu.getY() + this.rightClickMenu.getHeight() / 2);
         }
         fixButtonSizes(rightClickMenu);
 
@@ -309,7 +299,7 @@ public class GUIStage extends Stage {
         if (alert != null) {
             switch (alert.getType()) {
                 case WORLD:
-                    FloatingMessage message = new FloatingMessage(this, this.skin, screenX + camera.position.x - this.getViewport().getScreenWidth() / 2, (this.getViewport().getScreenHeight() - screenY) + camera.position.y - this.getViewport().getScreenHeight() / 2, alert.getMessage());
+                    FloatingMessage message = new FloatingMessage(this, this.skin, screenX, (this.getViewport().getScreenHeight() - screenY), alert.getMessage());
                     message.setZIndex(1);
                     this.addActor(message);
                     this.messages.add(message);
@@ -354,6 +344,11 @@ public class GUIStage extends Stage {
     @Override
     public boolean scrolled(int amount) {
         super.scrolled(amount);
+        float fAmount = (float) amount;
+        camera.zoom = camera.zoom + fAmount / 10;
+        if (camera.zoom <= 0) {
+            camera.zoom = 0.1f;
+        }
         return true;
     }
 
@@ -387,8 +382,8 @@ public class GUIStage extends Stage {
 
     public void inputHandling() {
         if (player != null) {
-            int hAxis = ((Gdx.input.isKeyPressed(Input.Keys.D) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.A) ? 1 : 0));
-            int vAxis = ((Gdx.input.isKeyPressed(Input.Keys.W) ? 1 : 0) - (Gdx.input.isKeyPressed(Input.Keys.S) ? 1 : 0));
+            int hAxis = ((Gdx.input.isKeyPressed(Game.settings.getKeybindings().moveRight) ? 1 : 0) - (Gdx.input.isKeyPressed(Game.settings.getKeybindings().moveLeft) ? 1 : 0));
+            int vAxis = ((Gdx.input.isKeyPressed(Game.settings.getKeybindings().moveUp) ? 1 : 0) - (Gdx.input.isKeyPressed(Game.settings.getKeybindings().moveDown) ? 1 : 0));
 
             player.changeX = hAxis;
             player.changeY = vAxis;

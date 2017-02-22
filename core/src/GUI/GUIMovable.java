@@ -44,10 +44,6 @@ abstract public class GUIMovable {
         this.verticalGroup.setVisible(!this.verticalGroup.isVisible());
     }
 
-    public void updatePositioning(Camera camera) {
-        root.setPosition(camera.position.x, camera.position.y);
-    }
-
     public void update() {
         if (verticalGroup.getX() == 0 && verticalGroup.getY() == 0) {
             verticalGroup.setPosition(verticalLastX, verticalLastY);

@@ -2,3 +2,4 @@ Id: 0    Name: water    File Name: water.json
 Id: 1    Name: dirt    File Name: dirt.json
 Id: 2    Name: grass    File Name: grass.json
 Id: 3    Name: sand    File Name: sand.json
+Id: 4    Name: fraud    File Name: fraud.json

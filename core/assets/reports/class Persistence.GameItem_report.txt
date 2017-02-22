@@ -2,3 +2,4 @@ Id: 0    Name: nothing    File Name: empty space.json
 Id: 1    Name: knife    File Name: knife.json
 Id: 2    Name: log    File Name: normal_log.json
 Id: 3    Name: coins    File Name: coins.json
+Id: 4    Name: iron axe    File Name: iron_axe.json

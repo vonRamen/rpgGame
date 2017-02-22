@@ -7,6 +7,7 @@ import Persistence.GameEntity;
 import Persistence.GameItem;
 import Persistence.Tile;
 import Persistence.GameObject;
+import Persistence.GlobalGameSettings;
 import Persistence.Report;
 import Persistence.Sound2D;
 import Persistence.Weapon;
@@ -17,6 +18,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -28,6 +30,7 @@ public class Game extends ApplicationAdapter {
 
     public static SpriteBatch batch;
     public static ShapeRenderer shapeRenderer;
+    public static GlobalGameSettings settings;
 
     enum GameState {
         MENU, PLAYING, LOADING
@@ -44,6 +47,7 @@ public class Game extends ApplicationAdapter {
     public static boolean isDebug;
     private ScreenViewport viewPort;
     private Stage stage;
+    private ShaderProgram shader;
 
     @Override
     public void create() {
@@ -60,6 +64,7 @@ public class Game extends ApplicationAdapter {
         GUIGraphics.load();
         GameEntity.load();
         Report.generateReports();
+        settings = GlobalGameSettings.getInstance();
         Gdx.graphics.setCursor(Gdx.graphics.newCursor(GUIGraphics.getPixmap(("cursor.png")), 0, 0));
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
             public float getX() {
@@ -81,6 +86,9 @@ public class Game extends ApplicationAdapter {
         stage = new GUIStage(world, camera, null, client.getClient());
         //stage = new MenuStage(camera);
         //Chunk.makeSample();
+        ShaderProgram.pedantic = false;
+        shader = new ShaderProgram(Gdx.files.internal("shaders/passthrough.vsh"), Gdx.files.internal("shaders/passthrough.fsh"));
+        batch.setShader(shader);
     }
 
     @Override
@@ -148,7 +156,7 @@ public class Game extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         if (!hasSetViewPort) {
-            this.stage.setViewport(this.viewPort);
+            //this.stage.setViewport(this.viewPort);
             hasSetViewPort = true;
         }
         camera.setToOrtho(false, width, height);

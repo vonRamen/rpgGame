@@ -51,9 +51,6 @@ public class GameWorld {
     private Time time;
 
     public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
-        WorldGenerator gen = new WorldGenerator(10, 10);
-        gen.generate();
-        gen.generateImage();
         this.camera = camera;
         this.entities = new ArrayList();
         this.chunks = new ArrayList();

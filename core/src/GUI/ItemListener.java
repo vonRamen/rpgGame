@@ -41,6 +41,7 @@ public class ItemListener extends ClickListener {
 
     @Override
     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        System.out.println("Listener is activating though..");
         int id = player.getInventory().getId(slotId);
         int count = player.getInventory().getCount(id);
         GameItem item = GameItem.get(id);
@@ -68,8 +69,6 @@ public class ItemListener extends ClickListener {
         table.row();
         table.setZIndex(10);
         //Make all the buttons the same width based on the largest if size > 1
-
-        table.setPosition(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
     }
 
 }

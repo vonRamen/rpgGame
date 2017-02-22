@@ -116,7 +116,7 @@ public class ServerListener extends Listener {
             droppedItems.put(item.getuId(), item);
             System.out.println("DroppedItem : " + item.name);
             server.sendToAllExceptTCP(connection.getID(), item);
-            if (droppedItems.get(item.getuId()).toBeRemoved) {
+            if (droppedItems.get(item.getuId()).isRemoving) {
                 droppedItems.remove(item.getuId());
             }
         }

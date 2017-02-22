@@ -148,7 +148,7 @@ public class Action {
                 return false;
             }
         }
-        if (isDoesRequireEquipment()) {
+        if (this.requiredEquipmentId != 0) {
             if (!human.getInventory().hasItem(requiredEquipmentId, 1)) {
                 if (human instanceof Player) {
                     Player player = (Player) human;

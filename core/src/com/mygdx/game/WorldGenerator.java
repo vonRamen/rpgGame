@@ -95,7 +95,15 @@ public class WorldGenerator extends Thread {
             generateByNoise(tiles);
         } while (this.evaluate(2, 70f, 85f) != true);
         log("Placing water straight from corner to corner to test");
-        //generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4);
+        int iteration = h * 32 - w;
+        int variation = 0;
+        int yDir = random.nextBoolean() ? -1 : 1;
+        while (this.getPercent(4) < 15) {
+            generateLine(4, 0, iteration+variation * yDir, w * 32, iteration+variation/2 * (-yDir), w+variation/4*yDir, 2);
+            variation+=h/2;
+            iteration-=h/2;
+        }
+        generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4, 2, 3);
 
         //places 10 percent trees randomly:
         placeByPercentage(0, 5f, 2);
@@ -194,7 +202,7 @@ public class WorldGenerator extends Thread {
         System.out.println("Trees planted: " + count);
     }
 
-    private void generateLine(int id, int x0, int y0, int x1, int y1, int size) {
+    private void generateLine(int id, int x0, int y0, int x1, int y1, int size, int... tilesWhiteList) {
         Point point1 = new Point(x0, y0);
         Point point2 = new Point(x1, y1);
         double distance = diagonalDistance(point1, point2);
@@ -202,7 +210,7 @@ public class WorldGenerator extends Thread {
         for (int step = 0; step <= distance; step++) {
             double t = distance == 0 ? 0.0 : step / distance;
             Point p = lerpPoint(point1, point2, t);
-            generateSquare(id, p.getX(), p.getY(), size, size);
+            generateSquare(id, p.getX(), p.getY(), size, size, tilesWhiteList);
             count += size;
         }
         log("Placed aprox: " + count + " of the id: " + id);
@@ -222,11 +230,20 @@ public class WorldGenerator extends Thread {
         return start + t * (end - start);
     }
 
-    private void generateSquare(int id, int x, int y, int sizeX, int sizeY) {
+    private void generateSquare(int id, int x, int y, int sizeX, int sizeY, int... tilesWhiteList) {
         for (int iy = 0; iy < sizeY; iy++) {
             for (int ix = 0; ix < sizeX; ix++) {
                 try {
-                    tiles[iy + y][ix + x] = id;
+                    boolean allowed = false;
+                    for (int i : tilesWhiteList) {
+                        if (i == tiles[iy + y][ix + x]) {
+                            allowed = true;
+                            break;
+                        }
+                    }
+                    if (allowed == true) {
+                        tiles[iy + y][ix + x] = id;
+                    }
                 } catch (IndexOutOfBoundsException e) {
 
                 }
@@ -291,6 +308,10 @@ public class WorldGenerator extends Thread {
         log("Evaluating size..");
         log("Percentage: " + ((float) countTile(tileID) / (float) totalTiles() * 100));
         return ((float) countTile(tileID) / (float) totalTiles() * 100 > minPercentage) && ((float) countTile(tileID) / (float) totalTiles() * 100 < maxPercentage);
+    }
+
+    private float getPercent(int tileID) {
+        return ((float) countTile(tileID) / (float) totalTiles() * 100);
     }
 
     private int countTile(int tileID) {
@@ -362,7 +383,7 @@ public class WorldGenerator extends Thread {
                         if (color.a == 0) {
                             continue;
                         }
-                        newPix.drawPixel(x + objPositionX + rel.getxRelative(), (h*32*32) - objPositionY + y - rel.getyRelative(), c
+                        newPix.drawPixel(x + objPositionX + rel.getxRelative(), (h * 32 * 32) - objPositionY + y - rel.getyRelative(), c
                         );
                     }
                 }
