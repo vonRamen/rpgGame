@@ -31,6 +31,7 @@ public class Game extends ApplicationAdapter {
     public static SpriteBatch batch;
     public static ShapeRenderer shapeRenderer;
     public static GlobalGameSettings settings;
+    public static ShaderProgram shadowShader;
 
     enum GameState {
         MENU, PLAYING, LOADING
@@ -47,10 +48,10 @@ public class Game extends ApplicationAdapter {
     public static boolean isDebug;
     private ScreenViewport viewPort;
     private Stage stage;
-    private ShaderProgram shader;
 
     @Override
     public void create() {
+        shadowShader = new ShaderProgram(Gdx.files.internal("shaders/shadow.vsh"), Gdx.files.internal("shaders/shadow.fsh"));
         playerName = "Mathias";
         playerPassword = "ubv59mve";
         screenW = 800;
@@ -76,7 +77,7 @@ public class Game extends ApplicationAdapter {
             }
         };
         viewPort = new ScreenViewport(camera);
-        batch = new SpriteBatch();
+        this.batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         gameState = GameState.PLAYING;
@@ -87,8 +88,6 @@ public class Game extends ApplicationAdapter {
         //stage = new MenuStage(camera);
         //Chunk.makeSample();
         ShaderProgram.pedantic = false;
-        shader = new ShaderProgram(Gdx.files.internal("shaders/passthrough.vsh"), Gdx.files.internal("shaders/passthrough.fsh"));
-        batch.setShader(shader);
     }
 
     @Override

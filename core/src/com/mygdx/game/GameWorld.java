@@ -58,7 +58,7 @@ public class GameWorld {
         this.droppedItems = new ArrayList();
         this.objectsToBeRemoved = new ArrayList();
         this.towns = new HashMap();
-        this.time = new Time(8*60);
+        this.time = new Time(8 * 60);
         size = 5;
         fieldOfView = 1;
         if (isServer) {
@@ -199,7 +199,7 @@ public class GameWorld {
         ArrayList<WorldObject> objects = new ArrayList();
 
         //binary search:
-        for (Drawable drawable : binarySearchY(drawOrder, 0, drawOrder.size()-1, y)) {
+        for (Drawable drawable : binarySearchY(drawOrder, 0, drawOrder.size() - 1, y)) {
             if (drawable instanceof WorldObject) {
                 WorldObject worldObject = (WorldObject) drawable;
                 if (worldObject.getX() == x) {
@@ -385,6 +385,17 @@ public class GameWorld {
             for (DroppedItem d : getDroppedItems()) {
                 d.draw();
             }
+            Game.batch.setColor(0, 0, 0, 1f);
+            Game.batch.setShader(Game.shadowShader);
+            for (Drawable d : drawOrder) {
+                if (d instanceof WorldObject) {
+                    Game.shadowShader.begin();
+                    ((WorldObject) d).drawShadow();
+                    Game.shadowShader.end();
+                }
+            }
+            Game.batch.setShader(null);
+            Game.batch.setColor(1, 1, 1, 1);
             for (Drawable d : drawOrder) {
                 d.draw();
             }
@@ -493,7 +504,7 @@ public class GameWorld {
     public void addObjectToBeAdded(Object o) {
         this.objectsToBeAdded.add(o);
     }
-    
+
     public void removeObject(Object o) {
         this.objectsToBeRemoved.add(o);
     }

@@ -109,6 +109,16 @@ public class WorldObject implements Drawable {
         }
         Game.batch.setColor(Color.WHITE);
     }
+    
+    public void drawShadow() {
+        if (id != -1) {
+            Player player = world.getPlayer();
+
+            if (!GameObject.get(id).isGhostObject()) {
+                GameObject.get(id).drawShadow(x, y, false);
+            }
+        }
+    }
 
     @Override
     public float getY() {

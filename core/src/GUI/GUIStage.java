@@ -22,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.esotericsoftware.kryonet.Client;
 import com.mygdx.game.Alert;
 import com.mygdx.game.EntitySimpleType;
@@ -70,6 +71,11 @@ public class GUIStage extends Stage {
 
     public GUIStage(GameWorld world, OrthographicCamera camera, Player player, Client client) {
         super();
+        
+        //setup camera and viewport
+        OrthographicCamera cam = new OrthographicCamera();
+        this.setViewport(new ScreenViewport(cam));
+        
         this.clickHold = new Click(0, 0);
         this.currentMouseLocation = new Click(0, 0);
         this.screenMessages = new VerticalGroup();

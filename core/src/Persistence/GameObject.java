@@ -67,7 +67,7 @@ public class GameObject implements ReportCreatable {
     protected Rectangle rectangle;
     protected ArrayList<Action> actions;
     protected String fileName;
-    
+
     private float zIndex = 0;
 
     //If the object is created through building stuff, then
@@ -218,16 +218,6 @@ public class GameObject implements ReportCreatable {
         if (this.hideWhenNear == false) {
             drawLess = false;
         }
-        if (!drawLess) {
-            for (SpriteRelative spriteShadow : getSprites()) {
-                //draw shadows.
-                if (zIndex != -1 && !isGhostObject) {
-                    Game.batch.setColor(0, 0, 0, 0.4f);
-                    Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y - 4 + spriteShadow.getyRelative());
-                    Game.batch.setColor(Color.WHITE);
-                }
-            }
-        }
         ArrayList<TextureRegion> listToChoose;
         if (isGhostObject) {
             listToChoose = objectSilhuetes;
@@ -246,6 +236,19 @@ public class GameObject implements ReportCreatable {
             }
             if (zIndex == 5) {
 
+            }
+        }
+    }
+    
+    public void drawShadow(int x, int y, boolean drawLess) {
+        if (!drawLess) {
+            for (SpriteRelative spriteShadow : getSprites()) {
+                //draw shadows.
+                if (zIndex != -1 && !isGhostObject) {
+                    Game.batch.setColor(0, 0, 0, 1);
+                    Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y + 10 - spriteShadow.getyRelative(), 0, 0, objectSprites.get(spriteShadow.getTextureId()).getRegionWidth(), objectSprites.get(spriteShadow.getTextureId()).getRegionHeight(), 1, -1, 0);
+                    Game.batch.setColor(Color.WHITE);
+                }
             }
         }
     }

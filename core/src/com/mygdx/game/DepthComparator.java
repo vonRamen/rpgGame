@@ -18,9 +18,9 @@ public class DepthComparator implements Comparator {
         Drawable ob1 = (Drawable) o1;
         Drawable ob2 = (Drawable) o2;
         //if the z value is actually -1, then draw first
-        if(ob1.getZ() == -1) {
+        if(ob1.getZ() < ob2.getZ()) {
             return -1;
-        } else if(ob2.getZ() == -1) {
+        } else if(ob1.getZ() > ob2.getZ()) {
             return 1;
         }
         
