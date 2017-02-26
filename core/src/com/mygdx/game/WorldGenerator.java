@@ -38,26 +38,23 @@ public class WorldGenerator extends Thread {
      * @param path can be null
      * @param sizeX size * 32 tiles
      * @param sizeY size * 32 tiles
+     * @return 
      */
-    public static void generateWorld(String path, int sizeX, int sizeY) {
+    public static WorldGenerator generateWorld(String path, int sizeX, int sizeY) {
         if (path == null) {
             path = "";
         }
         WorldGenerator worldGenerator = new WorldGenerator(sizeX, sizeY);
         worldGenerator.start();
-        while (!worldGenerator.isFinished) {
-            System.out.print(worldGenerator.getLog());
-        }
         ArrayList<Chunk> chunksList = worldGenerator.getWorld();
         for (Chunk chunk : chunksList) {
             Json json = new Json();
             String str = json.toJson(chunk);
 
-            FileHandle fileHandler = new FileHandle(path + "worlds/name/chunks/tiles" + chunk.getX() + " " + chunk.getY() + ".json");
+            FileHandle fileHandler = new FileHandle("chunks/tiles" + chunk.getX() + " " + chunk.getY() + ".json");
             fileHandler.writeString(str, false);
         }
-        System.out.println("World saved at path: " + path + "worlds/name");
-        System.out.println("World done generating..");
+        return worldGenerator;
     }
 
     private int w;

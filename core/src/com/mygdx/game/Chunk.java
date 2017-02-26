@@ -38,6 +38,7 @@ public class Chunk implements Runnable {
     private String controlledClient;
     private boolean toBeRemoved;
     private double deltaTime;
+    private GameWorld world;
 
     public Chunk(int x, int y, ArrayList<Drawable> drawable) {
         this.drawable = drawable;
@@ -53,6 +54,7 @@ public class Chunk implements Runnable {
 
     public void initialize() {
         for (WorldObject worldObject : worldObjects) {
+            worldObject.setWorld(world);
             worldObject.initialize();
         }
     }
@@ -213,5 +215,9 @@ public class Chunk implements Runnable {
     public boolean solidAt(int x, int y) {
         int[][] grid = getCollisionGrid();
         return grid[y][x] == 1;
+    }
+
+    public void setWorld(GameWorld world) {
+        this.world = world;
     }
 }

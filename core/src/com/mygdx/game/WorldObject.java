@@ -10,6 +10,11 @@ import Persistence.GameObject;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.esotericsoftware.kryonet.Client;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,6 +38,7 @@ public class WorldObject implements Drawable {
     protected static Client client;
     private float updateTimer;
     private GameWorld world;
+    private Body body;
 
     public WorldObject(GameWorld world, int id, int x, int y) {
         this.x = x;
@@ -50,6 +56,7 @@ public class WorldObject implements Drawable {
                         GameObject.get(id).getBounds().y + y,
                         GameObject.get(id).getBounds().width,
                         GameObject.get(id).getBounds().height);
+                        this.createBody();
             } else {
                 this.rectangle = null;
             }
@@ -227,5 +234,24 @@ public class WorldObject implements Drawable {
             return GameObject.get(id).getzIndex();
         }
         return 0;
+    }
+    
+    public void createBody() {
+        BodyDef bdef = new BodyDef();
+        bdef.type = BodyDef.BodyType.StaticBody;
+        bdef.position.set(new Vector2(x, y));
+
+        Body body = world.getPhysicsWorld().createBody(bdef);
+        CircleShape circle = new CircleShape();
+        circle.setRadius(16f);
+
+        FixtureDef fixture = new FixtureDef();
+        fixture.shape = circle;
+
+        body.createFixture(fixture);
+
+        this.body = body;
+
+        circle.dispose();
     }
 }

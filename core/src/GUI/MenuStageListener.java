@@ -5,6 +5,7 @@
  */
 package GUI;
 
+import Persistence.Sound2D;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
@@ -13,10 +14,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
  * @author kristian
  */
 public class MenuStageListener extends ClickListener {
-    MenuStage stage;
     
-    public MenuStageListener(MenuStage stage) {
-        this.stage = stage;
-    }     
-    
+    public MenuStageListener() {
+    }
+
+    @Override
+    public void clicked(InputEvent event, float x, float y) {
+        super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+        Sound2D sound = new Sound2D("sound_click_01.mp3");
+        sound.play(false);
+    }
+
 }

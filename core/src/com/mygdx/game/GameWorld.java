@@ -12,6 +12,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Json;
 import com.esotericsoftware.kryonet.Client;
@@ -46,7 +47,7 @@ public class GameWorld {
     private OrthographicCamera camera;
     private Player player;
     private String path;
-    private World world;
+    private World physicsWorld;
     private Client client;
     private Time time;
 
@@ -76,6 +77,7 @@ public class GameWorld {
             }
         } else {
             //Sound2D.playMusic("Deep Forest.ogg");
+            this.physicsWorld = new World(new Vector2(0f, 0f), false);
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
             objectsToBeAdded = new ArrayList();
@@ -249,6 +251,7 @@ public class GameWorld {
         entities.add(entity);
         drawOrder.add(entity);
         entity.world = this;
+        entity.createBody();
         return entity;
     }
 
@@ -259,6 +262,7 @@ public class GameWorld {
 
     public void update() {
         //update music fadeout and such..
+        this.physicsWorld.step(1/60f, 6, 2);
         Sound2D.updateMusic(deltaTime);
         deltaTime = Gdx.graphics.getDeltaTime();
         this.time.update(deltaTime);
@@ -385,17 +389,6 @@ public class GameWorld {
             for (DroppedItem d : getDroppedItems()) {
                 d.draw();
             }
-            Game.batch.setColor(0, 0, 0, 1f);
-            Game.batch.setShader(Game.shadowShader);
-            for (Drawable d : drawOrder) {
-                if (d instanceof WorldObject) {
-                    Game.shadowShader.begin();
-                    ((WorldObject) d).drawShadow();
-                    Game.shadowShader.end();
-                }
-            }
-            Game.batch.setShader(null);
-            Game.batch.setColor(1, 1, 1, 1);
             for (Drawable d : drawOrder) {
                 d.draw();
             }
@@ -514,6 +507,7 @@ public class GameWorld {
             for (Object o : objectsToBeAdded) {
                 if (o instanceof Chunk) {
                     Chunk chunk = (Chunk) o;
+                    chunk.setWorld(this);
                     chunk.initialize();
                     this.addChunk(chunk);
                     Iterator it = chunk.getWorldObjects().iterator();
@@ -524,8 +518,8 @@ public class GameWorld {
                     }
                 }
                 if (o instanceof WorldObject) {
-                    ((WorldObject) o).initialize();
                     ((WorldObject) o).setWorld(this);
+                    ((WorldObject) o).initialize();
                     this.updateWorldObject((WorldObject) o);
                 }
                 if (o instanceof DroppedItem) {
@@ -639,5 +633,12 @@ public class GameWorld {
             }
         }
         return false;
+    }
+
+    /**
+     * @return the physicsWorld
+     */
+    public World getPhysicsWorld() {
+        return physicsWorld;
     }
 }

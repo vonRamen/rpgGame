@@ -80,19 +80,19 @@ public class Game extends ApplicationAdapter {
         this.batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
-        gameState = GameState.PLAYING;
+        gameState = GameState.MENU;
         world = new GameWorld(false, "", camera);
         client = new MPClient(7777, world, playerName, playerPassword);
         world.setClient(client.getClient());
-        stage = new GUIStage(world, camera, null, client.getClient());
-        //stage = new MenuStage(camera);
+        //stage = new GUIStage(world, camera, null, client.getClient());
+        stage = new MenuStage();
         //Chunk.makeSample();
         ShaderProgram.pedantic = false;
     }
 
     @Override
     public void render() {
-        Gdx.gl.glClearColor(0.2f, 0.2f, 0.2f, 1);
+        Gdx.gl.glClearColor(0.6f, 0.6f, 0.6f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (world.getPlayer() != null) {
@@ -159,6 +159,9 @@ public class Game extends ApplicationAdapter {
             hasSetViewPort = true;
         }
         camera.setToOrtho(false, width, height);
+        if(this.stage instanceof MenuStage) {
+            ((MenuStage) this.stage).resize();
+        }
         this.stage.getViewport().update(width, height, true);
     }
 }

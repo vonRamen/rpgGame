@@ -29,6 +29,7 @@ import java.util.logging.Logger;
  */
 public class MPServer {
 
+    private static String log;
     private String ip;
     private int port;
     private Server server;
@@ -38,10 +39,21 @@ public class MPServer {
     private WorldSettings worldSettings;
 
     public static void main(String[] args) {
-        MPServer mpServer = new MPServer(7777);
+        log = "";
+        if(args.length == 4) {
+            WorldGenerator wGen = WorldGenerator.generateWorld("worlds/"+args[0]+"/", Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+            while(!wGen.isFinished()) {
+                
+            }
+        }
+        MPServer mpServer = new MPServer(args[0], Integer.parseInt(args[1]));
+    }
+    
+    public static String getLog() {
+        return log;
     }
 
-    public MPServer(int port) {
+    public MPServer(String worldName, int port) {
         worldName = "name";
         extraPath = "assets/worlds/" + worldName + "/";
         //WorldGenerator.generateWorld("assets/", 10, 10);

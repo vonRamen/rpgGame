@@ -11,7 +11,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.UUID;
@@ -35,10 +39,14 @@ public abstract class Entity implements Drawable, Cloneable {
     public float changeX;
     public float changeY;
     protected float strength;
+    protected float strengthMod;
+    protected float lastStrength;
     protected float boundsPattingX = 5;
     protected float boundsPattingY = 2;
     protected float animationTimer;
     protected float speed;
+    protected float speedMod;
+    protected float lastSpeed;
     protected float alpha;
     protected double deltaTime;
     private int chunkX; //The position of the chunk currently on
@@ -61,6 +69,7 @@ public abstract class Entity implements Drawable, Cloneable {
     protected Inventory inventory;
     protected EntityState state;
     protected boolean remove;
+    protected Body body;
 
     public Entity(GameWorld world) {
         this.world = world;
@@ -114,16 +123,12 @@ public abstract class Entity implements Drawable, Cloneable {
         if (animation != null) {
             currentFrame = animation.getKeyFrame(this.animationTimer, true);
         }
-        if ((changeX != 0 || changeY != 0)) {
-            move(changeX, changeY);
-        }
+        move(changeX, changeY);
 
         //Apply state
         if (this.getOnTile() == 0) {
             state = EntityState.SWIMMING;
         }
-
-        //Spawn alpha
     }
 
     public ArrayList<Drawable> checkDrawableCollision(Rectangle rect) {
@@ -172,6 +177,14 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void move(float change_x, float change_y) {
+        float angle = (float) Math.atan2(change_y, change_x);
+        this.body.applyLinearImpulse(new Vector2(change_x * speed, change_y * speed), this.body.getWorldCenter(), false);
+        this.x = this.body.getPosition().x;
+        this.y = this.body.getPosition().y;
+        if (changeX != 0 || changeY != 0) {
+            this.state = EntityState.WALKING;
+        }
+        /*
         if (!isNetworkObject) {
             this.changeX = change_x;
             this.changeY = change_y;
@@ -184,7 +197,7 @@ public abstract class Entity implements Drawable, Cloneable {
             float direction_y = (float) Math.sin(angle);
             if (bounds != null) {
                 bounds.x = x + boundsPattingX + change_x * 5;
-                bounds.y = y + boundsPattingY + change_y * 5;
+                bounds.y = y + boundsPattingY + chananimationTimerge_y * 5;
             }
             this.fieldOfView.x = this.x;
             this.fieldOfView.y = this.y;
@@ -225,11 +238,12 @@ public abstract class Entity implements Drawable, Cloneable {
         //If hit by a weapon:
         if (forceSpeed != 0) {
             forceSpeed -= ((strength + (strength - forceSpeed / 10)) * deltaTime);
-            if (forceSpeed <= 0) {
+            if (forceSpeed <= 0) {update
                 forceSpeed = 0;
             }
             updateBounds();
         }
+         */
     }
 
     public void damageThis(float direction, int damage, int force) {
@@ -589,8 +603,31 @@ public abstract class Entity implements Drawable, Cloneable {
     public void remove() {
         this.world.removeObject(this);
     }
-    
+
     public void sendUpdate() {
         this.world.getClient().sendTCP(this);
+    }
+
+    public void createBody() {
+        BodyDef bdef = new BodyDef();
+        bdef.type = BodyDef.BodyType.DynamicBody;
+        bdef.position.set(new Vector2(x, y));
+
+        Body body = world.getPhysicsWorld().createBody(bdef);
+        CircleShape circle = new CircleShape();
+        circle.setRadius(5f);
+
+        FixtureDef fixture = new FixtureDef();
+        fixture.shape = circle;
+        fixture.density = 0.1f;
+        fixture.friction = 0.4f;
+        fixture.restitution = 0.6f;
+
+        body.createFixture(fixture);
+        body.setLinearDamping(4f);
+
+        this.body = body;
+
+        circle.dispose();
     }
 }

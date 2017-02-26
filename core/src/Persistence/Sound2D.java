@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.Drawable;
+import com.mygdx.game.Game;
 import com.mygdx.game.Player;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,7 +80,16 @@ public class Sound2D {
             pan = 0f;
             volumen = 1f;
         }
-        sound.setPan(this.soundId, pan, volumen);
+        sound.setPan(this.soundId, pan, volumen * Game.settings.getMasterSoundVolume());
+    }
+
+    public void play(boolean loop) {
+        if (loop) {
+            soundId = this.sound.loop();
+        } else {
+            soundId = this.sound.play();
+        }
+        this.sound.setVolume(soundId, Game.settings.getMasterSoundVolume());
     }
 
     public void stop() {
@@ -101,15 +111,16 @@ public class Sound2D {
                 if (!isMusicPlaying && timer <= 0) {
                     isMusicPlaying = true;
                     currentSong = Gdx.audio.newMusic(new FileHandle(path + "music/" + songQueue.get(0)));
-                    currentSong.setVolume(1.0f);
+                    currentSong.setVolume(1.0f * Game.settings.getMasterMusicVolume());
                     try {
                         currentSong.play();
                         currentSong.setLooping(true);
                     } catch (GdxRuntimeException exception) {
-                        currentSong.setVolume(1.0f);
+                        currentSong.setVolume(1.0f * Game.settings.getMasterMusicVolume());
                         isMusicPlaying = false;
                     }
                 }
+                currentSong.setVolume(1.0f * Game.settings.getMasterMusicVolume());
             } else if (songQueue.size() > 1) {
                 currentSong.setVolume(currentSong.getVolume() - (float) deltaTime);
                 if (currentSong.getVolume() <= 0) {
