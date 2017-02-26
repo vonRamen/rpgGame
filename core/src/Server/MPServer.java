@@ -27,38 +27,56 @@ import java.util.logging.Logger;
  *
  * @author kristian
  */
-public class MPServer {
+public class MPServer extends Thread {
 
-    private static String log;
+    private String log;
     private String ip;
+    private int sizeX, sizeY;
     private int port;
-    private Server server;
     private GameWorld world;
     private String extraPath;
+    private Server server;
     private String worldName;
     private WorldSettings worldSettings;
+    private boolean ready;
+    private String[] arguments;
 
-    public static void main(String[] args) {
-        log = "";
-        if(args.length == 4) {
-            WorldGenerator wGen = WorldGenerator.generateWorld("worlds/"+args[0]+"/", Integer.parseInt(args[2]), Integer.parseInt(args[3]));
-            while(!wGen.isFinished()) {
-                
+    public MPServer(String[] args) {
+        this.log = "";
+        this.port = Integer.parseInt(args[1]);
+        this.arguments = args;
+        this.start();
+
+        //Start world generation if needed!
+        //Player.generate(extraPath + "players/", "Kristian", "ubv59mve");
+    }
+
+    private void registerPackets() {
+        Kryo kryo = server.getKryo();
+        KKryo.registerAll(kryo);
+    }
+
+    @Override
+    public void run() {
+        super.run();
+        if (this.arguments.length == 4) {
+            //name.getText(), "7777", width.getText(), height.getText()
+            this.worldName = this.arguments[0];
+            this.sizeX = Integer.parseInt(this.arguments[2]);
+            this.sizeY = Integer.parseInt(this.arguments[3]);
+            WorldGenerator wGen = WorldGenerator.generateWorld(this.worldName, this.sizeX, this.sizeY);
+            while (!wGen.isFinished()) {
+                String log = wGen.getLog();
+                if (log != null || log != "") {
+                    this.log = log;
+                }
             }
+            wGen = null;
+            this.log = ("Done generating world!");
         }
-        MPServer mpServer = new MPServer(args[0], Integer.parseInt(args[1]));
-    }
-    
-    public static String getLog() {
-        return log;
-    }
-
-    public MPServer(String worldName, int port) {
-        worldName = "name";
         extraPath = "assets/worlds/" + worldName + "/";
         //WorldGenerator.generateWorld("assets/", 10, 10);
-        world = new GameWorld(true, extraPath, null);
-        Player.generate(extraPath + "players/", "Kristian", "ubv59mve");
+        this.world = new GameWorld(true, extraPath, null);
         this.port = port;
         server = new Server();
         server.addListener(new ServerListener(server, world, extraPath));
@@ -69,10 +87,14 @@ public class MPServer {
             Logger.getLogger(MPServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         server.start();
+        this.ready = true;
     }
 
-    private void registerPackets() {
-        Kryo kryo = server.getKryo();
-        KKryo.registerAll(kryo);
+    public boolean isReady() {
+        return this.ready;
+    }
+
+    public String getLog() {
+        return log;
     }
 }

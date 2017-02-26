@@ -191,8 +191,6 @@ public class MenuStage extends Stage {
         return table;
     }
 
-    ;
-    
     private Table menuHost() {
         Table table = new Table();
 
@@ -264,8 +262,15 @@ public class MenuStage extends Stage {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
-                String[] empty = {name.getText(), "7777", width.getText(), height.getText()};
-                MPServer.main(empty);
+                String[] args = {"Test", "7777", width.getText(), height.getText()};
+                MPServer server = new MPServer(args);
+                String log = "";
+                while (!server.isReady()) {
+                    if (log != server.getLog()) {
+                        System.out.println("ServerLog: " + server.getLog());
+                        log = server.getLog();
+                    }
+                }
             }
 
         });

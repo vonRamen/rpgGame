@@ -38,7 +38,7 @@ public class WorldGenerator extends Thread {
      * @param path can be null
      * @param sizeX size * 32 tiles
      * @param sizeY size * 32 tiles
-     * @return 
+     * @return
      */
     public static WorldGenerator generateWorld(String path, int sizeX, int sizeY) {
         if (path == null) {
@@ -46,14 +46,6 @@ public class WorldGenerator extends Thread {
         }
         WorldGenerator worldGenerator = new WorldGenerator(sizeX, sizeY);
         worldGenerator.start();
-        ArrayList<Chunk> chunksList = worldGenerator.getWorld();
-        for (Chunk chunk : chunksList) {
-            Json json = new Json();
-            String str = json.toJson(chunk);
-
-            FileHandle fileHandler = new FileHandle("chunks/tiles" + chunk.getX() + " " + chunk.getY() + ".json");
-            fileHandler.writeString(str, false);
-        }
         return worldGenerator;
     }
 
@@ -95,10 +87,11 @@ public class WorldGenerator extends Thread {
         int iteration = h * 32 - w;
         int variation = 0;
         int yDir = random.nextBoolean() ? -1 : 1;
+        
         while (this.getPercent(4) < 15) {
-            generateLine(4, 0, iteration+variation * yDir, w * 32, iteration+variation/2 * (-yDir), w+variation/4*yDir, 2);
-            variation+=h/2;
-            iteration-=h/2;
+            generateLine(4, 0, iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
+            variation += h / 2;
+            iteration -= h / 2;
         }
         generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4, 2, 3);
 
@@ -389,5 +382,15 @@ public class WorldGenerator extends Thread {
         FileHandle fileH = Gdx.files.local("worldMap.png");
         PixmapIO.writePNG(fileH, newPix);
         fileH.write(true);
+    }
+
+    public void saveWorld(String path) {
+        for (Chunk chunk : chunkList) {
+            Json json = new Json();
+            String str = json.toJson(chunk);
+
+            FileHandle fileHandler = new FileHandle(path + "chunks/tiles" + chunk.getX() + " " + chunk.getY() + ".json");
+            fileHandler.writeString(str, false);
+        }
     }
 }
