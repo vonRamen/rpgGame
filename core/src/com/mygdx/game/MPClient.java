@@ -27,7 +27,7 @@ public class MPClient {
         //MPClient client = new MPClient(7777);
     }
     
-    public MPClient(int port, GameWorld world, String playerName, String playerPassword) {
+    public MPClient(String ip, int port, GameWorld world, String playerName, String playerPassword) {
         this.playerName = playerName;
         this.playerPassword = playerPassword;
         client = new Client(10000, 20000);
@@ -35,7 +35,7 @@ public class MPClient {
         client.addListener(new ClientListener(getClient(), world, playerName));
         client.start();
         try {
-            client.connect(5000, "127.0.0.1", port);
+            client.connect(5000, ip, port);
             Packets.RequestAccess request = new Packets.RequestAccess();
             request.name = playerName;
             request.password = playerPassword;

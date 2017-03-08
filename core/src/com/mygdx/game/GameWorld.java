@@ -33,6 +33,7 @@ public class GameWorld {
     private int size;
     private int sizeX;
     private int sizeY;
+    private int lastPlayerX, lastPlayerY;
     private int drawableCount;
     private double deltaTime;
     private String name;
@@ -94,12 +95,29 @@ public class GameWorld {
     }
 
     public void updateRemoval(int chunkX, int chunkY) {
+        /*
         for (Chunk chunk : this.chunks) {
             double distanceBetweenX = Math.abs(chunk.getX() - chunkX);
             double distanceBetweenY = Math.abs(chunk.getY() - chunkY);
             if ((distanceBetweenX > fieldOfView) || (distanceBetweenY > fieldOfView)) {
                 ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
                 chunk.flagObjectsForRemoval();
+            }
+        }
+        */
+        if (this.lastPlayerX != this.player.getChunkX() || this.lastPlayerY != this.player.getChunkY()) {
+            this.lastPlayerX = this.player.getChunkX();
+            this.lastPlayerY = this.player.getChunkY();
+
+            int rangeX = fieldOfView;
+            int rangeY = fieldOfView;
+
+            for (Chunk chunk : this.chunks) {
+                if (chunk.getX() < this.lastPlayerX-rangeX || chunk.getX() > this.lastPlayerX+rangeX
+                        || chunk.getY() < this.lastPlayerY-rangeY || chunk.getY() > this.lastPlayerY+rangeY) {
+                    ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
+                    chunk.flagObjectsForRemoval();
+                }
             }
         }
     }
@@ -262,7 +280,7 @@ public class GameWorld {
 
     public void update() {
         //update music fadeout and such..
-        this.physicsWorld.step(1/60f, 6, 2);
+        this.physicsWorld.step(1 / 60f, 6, 2);
         Sound2D.updateMusic(deltaTime);
         deltaTime = Gdx.graphics.getDeltaTime();
         this.time.update(deltaTime);

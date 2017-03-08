@@ -42,13 +42,9 @@ public class MPServer extends Thread {
     private String[] arguments;
 
     public MPServer(String[] args) {
-        this.log = "";
+        this.log = "Server is starting..";
         this.port = Integer.parseInt(args[1]);
         this.arguments = args;
-        this.start();
-
-        //Start world generation if needed!
-        //Player.generate(extraPath + "players/", "Kristian", "ubv59mve");
     }
 
     private void registerPackets() {
@@ -60,34 +56,36 @@ public class MPServer extends Thread {
     public void run() {
         super.run();
         if (this.arguments.length == 4) {
+            this.setLog("Beginning world generation");
             //name.getText(), "7777", width.getText(), height.getText()
             this.worldName = this.arguments[0];
             this.sizeX = Integer.parseInt(this.arguments[2]);
             this.sizeY = Integer.parseInt(this.arguments[3]);
             WorldGenerator wGen = WorldGenerator.generateWorld(this.worldName, this.sizeX, this.sizeY);
-            while (!wGen.isFinished()) {
-                String log = wGen.getLog();
-                if (log != null || log != "") {
-                    this.log = log;
-                }
-            }
+            wGen.generate(this);
+            wGen.saveWorld("worlds/"+this.worldName+ "/");
             wGen = null;
-            this.log = ("Done generating world!");
+            this.setLog("Done generating world!");
         }
-        extraPath = "assets/worlds/" + worldName + "/";
-        //WorldGenerator.generateWorld("assets/", 10, 10);
+        extraPath = "worlds/" + worldName + "/";
+        Player.generate(extraPath + "players/", "Kristian", "ubv59mve");
         this.world = new GameWorld(true, extraPath, null);
         this.port = port;
-        server = new Server();
-        server.addListener(new ServerListener(server, world, extraPath));
+        server = new Server(36384, 6048);
+        server.addListener(new ServerListener(this));
         registerPackets();
         try {
             server.bind(port);
         } catch (IOException ex) {
             Logger.getLogger(MPServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        this.setLog("Starting server..");
         server.start();
         this.ready = true;
+    }
+    
+    public void setLog(String log) {
+        this.log = log;
     }
 
     public boolean isReady() {
@@ -95,6 +93,24 @@ public class MPServer extends Thread {
     }
 
     public String getLog() {
-        return log;
+        String returnLog = this.log;
+        this.log = null;
+        return returnLog;
+    }
+
+    public Server getServer() {
+        return this.server;
+    }
+
+    public String getPath() {
+        return this.extraPath;
+    }
+
+    public GameWorld getWorld() {
+        return this.world;
+    }
+
+    public int getPort() {
+        return this.port;
     }
 }

@@ -49,12 +49,17 @@ public class MenuStage extends Stage {
     private Table table;
     private Group root;
     private TextureRegion backgroundImage;
+    private MPServer server;
+    private Game game;
 
     private TextButton keyReference;
     private String fieldReference;
 
-    public MenuStage() {
+    private Label statusLabel;
+
+    public MenuStage(Game game) {
         super();
+        this.game = game;
         Sound2D.playMusic("Deep Forest.ogg");
         this.backgroundImage = new TextureRegion(GUIGraphics.get("menu_background.png").getRegion());
         //setup camera and viewport
@@ -78,6 +83,17 @@ public class MenuStage extends Stage {
     public void act() {
         super.act();
         Sound2D.updateMusic(Gdx.graphics.getDeltaTime());
+        if (this.statusLabel != null) {
+            String newLog = this.server.getLog();
+            if (newLog != null) {
+                this.statusLabel.setText(newLog);
+            }
+        }
+        if (this.server != null) {
+            if(this.server.isReady()) {
+                this.game.joinGame("127.0.0.1", this.server.getPort());
+            }
+        }
     }
 
     @Override
@@ -262,15 +278,11 @@ public class MenuStage extends Stage {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
-                String[] args = {"Test", "7777", width.getText(), height.getText()};
-                MPServer server = new MPServer(args);
-                String log = "";
-                while (!server.isReady()) {
-                    if (log != server.getLog()) {
-                        System.out.println("ServerLog: " + server.getLog());
-                        log = server.getLog();
-                    }
-                }
+                String[] args = {name.getText(), "7777", width.getText(), height.getText()};
+                server = new MPServer(args);
+
+                server.start();
+                switchMenu(createWorld());
             }
 
         });
@@ -286,6 +298,15 @@ public class MenuStage extends Stage {
 
         });
         table.add(back);
+
+        return table;
+    }
+
+    private Table createWorld() {
+        Table table = new Table();
+
+        this.statusLabel = new Label("Creating World..", this.skin);
+        table.add(this.statusLabel);
 
         return table;
     }

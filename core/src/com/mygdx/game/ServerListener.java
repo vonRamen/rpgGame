@@ -7,6 +7,7 @@ package com.mygdx.game;
 
 import Persistence.GameItem;
 import Server.ExtraCommand;
+import Server.MPServer;
 import Server.WorldSettings;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -34,16 +35,16 @@ public class ServerListener extends Listener {
     private WorldSettings worldSettings;
     private String fullPath;
     private Server server;
-    private int fieldOfView = 2; //default 1
+    private int fieldOfView = 1; //default 1
     private boolean isRecurring;
 
-    public ServerListener(Server server, GameWorld gameWorld, String fullPath) {
-        this.fullPath = fullPath;
-        this.server = server;
+    public ServerListener(MPServer server) {
+        this.fullPath = server.getPath();
+        this.server = server.getServer();
         connections = new ArrayList();
         playerToConnection = new HashMap();
         droppedItems = new HashMap();
-        world = gameWorld;
+        world = server.getWorld();
         worldSettings = new WorldSettings("Test", world.getSizeX(), world.getSizeY());
     }
 

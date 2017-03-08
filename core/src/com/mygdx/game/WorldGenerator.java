@@ -8,6 +8,7 @@ package com.mygdx.game;
 import Persistence.GameObject;
 import Persistence.NoiseGenerator;
 import Persistence.Tile;
+import Server.MPServer;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
@@ -45,7 +46,6 @@ public class WorldGenerator extends Thread {
             path = "";
         }
         WorldGenerator worldGenerator = new WorldGenerator(sizeX, sizeY);
-        worldGenerator.start();
         return worldGenerator;
     }
 
@@ -59,6 +59,7 @@ public class WorldGenerator extends Thread {
     private ArrayList<String> generationLog;
     private ArrayList<WorldObject> worldObjects;
     private int[][] tiles;
+    private MPServer logDump;
 
     public WorldGenerator(int w, int h) {
         generationLog = new ArrayList();
@@ -69,10 +70,15 @@ public class WorldGenerator extends Thread {
     }
 
     public void run() {
-        generate();
+        generate(null);
     }
 
-    public void generate() {
+    /**
+     * 
+     * @param logDump can be null
+     */
+    public void generate(MPServer logDump) {
+        this.logDump = logDump;
         worldObjects = new ArrayList();
         tiles = new int[32 * h][32 * w];
         log("Generating world by the given noise");
@@ -86,17 +92,22 @@ public class WorldGenerator extends Thread {
         log("Placing water straight from corner to corner to test");
         int iteration = h * 32 - w;
         int variation = 0;
-        int yDir = random.nextBoolean() ? -1 : 1;
+        int yDir = random.nextBoolean() ? 1 : 1;
+        
+        this.log("Corruptifies the world");
         
         while (this.getPercent(4) < 15) {
             generateLine(4, 0, iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
             variation += h / 2;
             iteration -= h / 2;
         }
+        this.log("Humidifes the world");
         generateLine(0, 0, 0, w * 10 * 32, h * 10 * 32, 4, 2, 3);
 
         //places 10 percent trees randomly:
+        this.log("Plants trees");
         placeByPercentage(0, 5f, 2);
+        this.log("Plants some boulders");
         placeByPercentage(2, 2f, 2, 3);
 
         //what do you wanna do?
@@ -189,7 +200,6 @@ public class WorldGenerator extends Thread {
                 log(count + " placed of id: " + id);
             }
         }
-        System.out.println("Trees planted: " + count);
     }
 
     private void generateLine(int id, int x0, int y0, int x1, int y1, int size, int... tilesWhiteList) {
@@ -275,6 +285,7 @@ public class WorldGenerator extends Thread {
                 chunks.add(chunk);
             }
         }
+        this.log("Done Generating The World");
         this.isFinished = true;
         return chunks;
     }
@@ -329,6 +340,9 @@ public class WorldGenerator extends Thread {
     }
 
     public void log(String string) {
+        if(this.logDump!=null) {
+            this.logDump.setLog("Generating World..: "+string);
+        }
         generationLog.add(string);
     }
 

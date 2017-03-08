@@ -52,7 +52,7 @@ public class Game extends ApplicationAdapter {
     @Override
     public void create() {
         shadowShader = new ShaderProgram(Gdx.files.internal("shaders/shadow.vsh"), Gdx.files.internal("shaders/shadow.fsh"));
-        playerName = "Mathias";
+        playerName = "Kristian";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;
@@ -82,10 +82,7 @@ public class Game extends ApplicationAdapter {
         shapeRenderer.setAutoShapeType(true);
         gameState = GameState.MENU;
         world = new GameWorld(false, "", camera);
-        client = new MPClient(7777, world, playerName, playerPassword);
-        world.setClient(client.getClient());
-        //stage = new GUIStage(world, camera, null, client.getClient());
-        stage = new MenuStage();
+        stage = new MenuStage(this);
         //Chunk.makeSample();
         ShaderProgram.pedantic = false;
     }
@@ -163,5 +160,12 @@ public class Game extends ApplicationAdapter {
             ((MenuStage) this.stage).resize();
         }
         this.stage.getViewport().update(width, height, true);
+    }
+    
+    public void joinGame(String ip, int port) {
+        client = new MPClient(ip, 7777, world, playerName, playerPassword);
+        world.setClient(client.getClient());
+        stage = new GUIStage(world, camera, null, client.getClient());
+        this.gameState = gameState.PLAYING;
     }
 }
