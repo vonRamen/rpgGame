@@ -40,9 +40,16 @@ public class MPServer extends Thread {
     private WorldSettings worldSettings;
     private boolean ready;
     private String[] arguments;
+    
+    public static void main(String[] args) {
+        String[] newArgs = {"Test", "7777"};
+        MPServer server = new MPServer(newArgs);
+        server.start();
+    }
 
     public MPServer(String[] args) {
         this.log = "Server is starting..";
+        this.worldName = args[0];
         this.port = Integer.parseInt(args[1]);
         this.arguments = args;
     }
@@ -58,7 +65,6 @@ public class MPServer extends Thread {
         if (this.arguments.length == 4) {
             this.setLog("Beginning world generation");
             //name.getText(), "7777", width.getText(), height.getText()
-            this.worldName = this.arguments[0];
             this.sizeX = Integer.parseInt(this.arguments[2]);
             this.sizeY = Integer.parseInt(this.arguments[3]);
             WorldGenerator wGen = WorldGenerator.generateWorld(this.worldName, this.sizeX, this.sizeY);
@@ -68,7 +74,7 @@ public class MPServer extends Thread {
             this.setLog("Done generating world!");
         }
         extraPath = "worlds/" + worldName + "/";
-        Player.generate(extraPath + "players/", "Kristian", "ubv59mve");
+        Player.generate(extraPath + "players/", "Host", "");
         this.world = new GameWorld(true, extraPath, null);
         this.port = port;
         server = new Server(36384, 6048);

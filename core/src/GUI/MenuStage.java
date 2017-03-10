@@ -12,6 +12,7 @@ import Server.MPServer;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -23,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -35,6 +37,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.esotericsoftware.reflectasm.shaded.org.objectweb.asm.Type;
 import com.mygdx.game.Game;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,7 +94,7 @@ public class MenuStage extends Stage {
         }
         if (this.server != null) {
             if(this.server.isReady()) {
-                this.game.joinGame("127.0.0.1", this.server.getPort());
+                this.game.joinGame("127.0.0.1", this.server.getPort(), "Host", "");
             }
         }
     }
@@ -173,6 +176,7 @@ public class MenuStage extends Stage {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                switchMenu(menuConnect());
             }
 
         });
@@ -206,9 +210,71 @@ public class MenuStage extends Stage {
         table.pack();
         return table;
     }
+    
+    private Table menuConnect() {
+        Table table = new Table();
+        
+        Label ipLabel = new Label("Ip Adress:", this.skin);
+        final TextField ipAddress = new TextField("127.0.0.1", this.skin);
+        table.add(ipLabel, ipAddress);
+        table.row();
+        
+        Label portLabel = new Label("Port:", this.skin);
+        final TextField port = new TextField("7777", this.skin);
+        table.add(portLabel, port);
+        table.row();
+        
+        Label userNameLabel = new Label("Username:", this.skin);
+        final TextField userName = new TextField("", this.skin);
+        table.add(userNameLabel, userName);
+        table.row();
+        
+        Label passWordLabel = new Label("Password:", this.skin);
+        final TextField passWord = new TextField("", this.skin);
+        passWord.setPasswordMode(true);
+        passWord.setPasswordCharacter('*');
+        table.add(passWordLabel, passWord);
+        table.row();
+        
+        TextButton back = new TextButton("Back", skin);
+        back.addListener(new MenuStageListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                switchMenu(menuPlay());
+            }
+
+        });
+        table.add(back);
+        
+        TextButton connect = new TextButton("Connect", skin);
+        connect.addListener(new MenuStageListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                game.joinGame(ipAddress.getText(), Integer.parseInt(port.getText()), userName.getText(), passWord.getText());
+            }
+
+        });
+        table.add(connect);
+        
+        return table;
+    }
 
     private Table menuHost() {
         Table table = new Table();
+        
+        TextButton loadWorld = new TextButton("Load World", skin);
+        loadWorld.addListener(new MenuStageListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                switchMenu(menuLoadWorld());
+            }
+
+        });
+        table.add(loadWorld);
+        table.row();
 
         TextButton newWorld = new TextButton("New World", skin);
         newWorld.addListener(new MenuStageListener() {
@@ -233,6 +299,47 @@ public class MenuStage extends Stage {
         });
         table.add(back);
 
+        return table;
+    }
+    
+    private Table menuLoadWorld() {
+        Table table = new Table();
+        
+        ScrollPane pane = new ScrollPane(table, this.skin);
+        
+        //add a button for each world.
+        FileHandle worlds = Gdx.files.internal("worlds/");
+        for(FileHandle file : worlds.list()) {
+            TextButton newButton = new TextButton(file.nameWithoutExtension(), this.skin);
+            final FileHandle finalizedFile = file;
+            newButton.addListener(new MenuStageListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                    String[] args = {finalizedFile.nameWithoutExtension(), "7777"};
+                    server = new MPServer(args);
+                    
+                    server.start();
+                    
+                    switchMenu(gotoWorld());
+                }
+                
+            });
+            table.add(newButton);
+            table.row();
+        }
+        
+        TextButton back = new TextButton("Back", skin);
+        back.addListener(new MenuStageListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                switchMenu(menuHost());
+            }
+
+        });
+        table.add(back);
+        
         return table;
     }
 
@@ -282,7 +389,7 @@ public class MenuStage extends Stage {
                 server = new MPServer(args);
 
                 server.start();
-                switchMenu(createWorld());
+                switchMenu(gotoWorld());
             }
 
         });
@@ -302,7 +409,7 @@ public class MenuStage extends Stage {
         return table;
     }
 
-    private Table createWorld() {
+    private Table gotoWorld() {
         Table table = new Table();
 
         this.statusLabel = new Label("Creating World..", this.skin);

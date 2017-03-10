@@ -126,7 +126,6 @@ public class GameWorld {
         WorldObject.setClient(this.getClient());
         this.player = player;
         addEntity(player);
-
     }
 
     /**

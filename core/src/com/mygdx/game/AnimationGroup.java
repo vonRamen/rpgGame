@@ -31,6 +31,8 @@ public class AnimationGroup implements ReportCreatable {
 
     //0 = walk, 1 = idle, 2 = swimming
     private String[] sheets;
+    //Length of animation horizontally
+    private int animationLength = 3;
 
     private ArrayList<Animation[]> groupAnimations;
 
@@ -60,15 +62,15 @@ public class AnimationGroup implements ReportCreatable {
     }
 
     private void loadSprites() {
-        TextureRegion[][] dirAnims = new TextureRegion[4][3];
-        TextureRegion[][] underWaterFrames = new TextureRegion[4][3];
+        TextureRegion[][] dirAnims = new TextureRegion[4][animationLength];
+        TextureRegion[][] underWaterFrames = new TextureRegion[4][animationLength];
         Texture texture = new Texture(path + "sprites/" + sheets[0]);
-        TextureRegion[][] textureRegion = TextureRegion.split(texture, texture.getWidth() / 3, texture.getHeight() / 4);
-        TextureRegion[] frames = new TextureRegion[3 * 4];
+        TextureRegion[][] textureRegion = TextureRegion.split(texture, texture.getWidth() / animationLength, texture.getHeight() / 4);
+        TextureRegion[] frames = new TextureRegion[animationLength * 4];
 
         int index = 0;
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
+            for (int j = 0; j < animationLength; j++) {
                 frames[index++] = textureRegion[i][j];
                 underWaterFrames[i][j] = new TextureRegion(textureRegion[i][j], 0, 0, 32, 16);
                 dirAnims[i][j] = textureRegion[i][j];
@@ -97,11 +99,11 @@ public class AnimationGroup implements ReportCreatable {
                 if (!sheets[i].equals("null")) {
                     dirHandle = Gdx.files.internal(path + "sprites/");
                     Texture texture = new Texture(path + "sprites/" + sheets[i]);
-                    TextureRegion[][] textureRegion = TextureRegion.split(texture, texture.getWidth() / 3, texture.getHeight() / 4);
-                    TextureRegion[][] frames = new TextureRegion[4][3];
+                    TextureRegion[][] textureRegion = TextureRegion.split(texture, texture.getWidth() / animationLength, texture.getHeight() / 4);
+                    TextureRegion[][] frames = new TextureRegion[4][animationLength];
                     int index = 0;
                     for (int iy = 0; iy < 4; iy++) {
-                        for (int ix = 0; ix < 3; ix++) {
+                        for (int ix = 0; ix < animationLength; ix++) {
                             frames[iy][ix] = textureRegion[iy][ix];
                         }
                     }

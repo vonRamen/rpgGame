@@ -162,7 +162,7 @@ public class Game extends ApplicationAdapter {
         this.stage.getViewport().update(width, height, true);
     }
     
-    public void joinGame(String ip, int port) {
+    public void joinGame(String ip, int port, String playerName, String playerPassword) {
         client = new MPClient(ip, 7777, world, playerName, playerPassword);
         world.setClient(client.getClient());
         stage = new GUIStage(world, camera, null, client.getClient());

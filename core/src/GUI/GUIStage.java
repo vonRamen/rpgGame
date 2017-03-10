@@ -71,11 +71,11 @@ public class GUIStage extends Stage {
 
     public GUIStage(GameWorld world, OrthographicCamera camera, Player player, Client client) {
         super();
-        
+
         //setup camera and viewport
         OrthographicCamera cam = new OrthographicCamera();
         this.setViewport(new ScreenViewport(cam));
-        
+
         this.clickHold = new Click(0, 0);
         this.currentMouseLocation = new Click(0, 0);
         this.screenMessages = new VerticalGroup();
@@ -259,7 +259,7 @@ public class GUIStage extends Stage {
                     System.out.println(ex);
                 }
             }
-        };
+        }
         return true;
     }
 
@@ -285,7 +285,7 @@ public class GUIStage extends Stage {
         }
         if (player != null) {
 
-            this.rightClickMenu.setPosition(this.rightClickMenu.getX() + this.rightClickMenu.getWidth()/2, this.rightClickMenu.getY() + this.rightClickMenu.getHeight() / 2);
+            this.rightClickMenu.setPosition(this.rightClickMenu.getX() + this.rightClickMenu.getWidth() / 2, this.rightClickMenu.getY() + this.rightClickMenu.getHeight() / 2);
         }
         fixButtonSizes(rightClickMenu);
 
