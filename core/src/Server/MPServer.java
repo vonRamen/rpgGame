@@ -9,6 +9,7 @@ import Persistence.GameObject;
 import Persistence.NoiseGenerator;
 import Utility.Grid;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
 import com.mygdx.game.GameWorld;
@@ -27,7 +28,7 @@ import java.util.logging.Logger;
  *
  * @author kristian
  */
-public class MPServer extends Thread {
+public class MPServer implements Runnable {
 
     private String log;
     private String ip;
@@ -39,12 +40,28 @@ public class MPServer extends Thread {
     private String worldName;
     private WorldSettings worldSettings;
     private boolean ready;
+    private Texture previewImage;
     private String[] arguments;
-    
+    private WorldGenerator wGen;
+    private Thread currentThread;
+
     public static void main(String[] args) {
         String[] newArgs = {"Test", "7777"};
         MPServer server = new MPServer(newArgs);
         server.start();
+    }
+
+    public void start() {
+        //restart thread if running.
+        this.server = null;
+        this.ready = false;
+        if (currentThread != null) {
+            currentThread = null;
+        }
+
+        //start thread
+        currentThread = new Thread(this);
+        currentThread.start();
     }
 
     public MPServer(String[] args) {
@@ -61,35 +78,28 @@ public class MPServer extends Thread {
 
     @Override
     public void run() {
-        super.run();
+        this.ready = false;
+        this.previewImage = null;
+        extraPath = "worlds/" + worldName + "/";
         if (this.arguments.length == 4) {
+            Player.generate(extraPath + "players/", "Host", "");
             this.setLog("Beginning world generation");
             //name.getText(), "7777", width.getText(), height.getText()
             this.sizeX = Integer.parseInt(this.arguments[2]);
             this.sizeY = Integer.parseInt(this.arguments[3]);
-            WorldGenerator wGen = WorldGenerator.generateWorld(this.worldName, this.sizeX, this.sizeY);
+            this.wGen = WorldGenerator.generateWorld(this.worldName, this.sizeX, this.sizeY);
             wGen.generate(this);
-            wGen.saveWorld("worlds/"+this.worldName+ "/");
-            wGen = null;
+            wGen.saveWorld("worlds/" + this.worldName + "/");
             this.setLog("Done generating world!");
         }
-        extraPath = "worlds/" + worldName + "/";
-        Player.generate(extraPath + "players/", "Host", "");
         this.world = new GameWorld(true, extraPath, null);
         this.port = port;
         server = new Server(36384, 6048);
         server.addListener(new ServerListener(this));
         registerPackets();
-        try {
-            server.bind(port);
-        } catch (IOException ex) {
-            Logger.getLogger(MPServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.setLog("Starting server..");
-        server.start();
         this.ready = true;
     }
-    
+
     public void setLog(String log) {
         this.log = log;
     }
@@ -118,5 +128,30 @@ public class MPServer extends Thread {
 
     public int getPort() {
         return this.port;
+    }
+
+    public Texture getPreview() {
+        if (this.previewImage == null) {
+            if (wGen == null) {
+                return null;
+            }
+            this.previewImage = wGen.getPreview();
+            this.wGen = null;
+        }
+        return this.previewImage;
+    }
+
+    public void startServer() {
+        this.setLog("Starting server..");
+        try {
+            server.bind(port);
+        } catch (IOException ex) {
+            Logger.getLogger(MPServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        server.start();
+    }
+
+    public void restart() {
+
     }
 }

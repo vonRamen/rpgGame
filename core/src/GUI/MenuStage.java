@@ -15,6 +15,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -32,6 +33,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldFilter;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -54,6 +56,7 @@ public class MenuStage extends Stage {
     private TextureRegion backgroundImage;
     private MPServer server;
     private Game game;
+    private TextureRegionDrawable previewImage;
 
     private TextButton keyReference;
     private String fieldReference;
@@ -93,8 +96,43 @@ public class MenuStage extends Stage {
             }
         }
         if (this.server != null) {
-            if(this.server.isReady()) {
-                this.game.joinGame("127.0.0.1", this.server.getPort(), "Host", "");
+            if (this.server.isReady()) {
+                if (this.previewImage == null) {
+                    this.previewImage = new TextureRegionDrawable();
+                    Texture tex = this.server.getPreview();
+                    if (tex != null) {
+                        this.backgroundImage = new TextureRegion(tex);
+                    }
+                    final Table t = (Table) this.root.getChildren().get(0);
+                    t.row();
+                    final TextButton accept = new TextButton("Accept this map", this.skin);
+                    accept.addListener(new MenuStageListener() {
+                        @Override
+                        public void clicked(InputEvent event, float x, float y) {
+                            super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                            server.startServer();
+                            game.joinGame("127.0.0.1", server.getPort(), "Host", "");
+                        }
+
+                    });
+                    t.add(accept);
+                    t.row();
+
+                    final TextButton retry = new TextButton("Retry", this.skin);
+                    retry.addListener(new MenuStageListener() {
+                        @Override
+                        public void clicked(InputEvent event, float x, float y) {
+                            super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                            t.removeActor(retry);
+                            t.removeActor(accept);
+                            server.start();
+                            previewImage = null;
+                        }
+
+                    });
+                    t.add(retry);
+                    t.row();
+                }
             }
         }
     }
@@ -111,7 +149,7 @@ public class MenuStage extends Stage {
         Batch batch = this.getBatch();
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        batch.draw(this.backgroundImage, 0, 0);
+        batch.draw(this.backgroundImage, this.getViewport().getCamera().viewportWidth / 2 - this.backgroundImage.getRegionWidth() / 2, this.getViewport().getCamera().viewportHeight / 2 - this.backgroundImage.getRegionHeight() / 2);
         this.getRoot().draw(batch, 1);
         batch.end();
     }
@@ -210,32 +248,32 @@ public class MenuStage extends Stage {
         table.pack();
         return table;
     }
-    
+
     private Table menuConnect() {
         Table table = new Table();
-        
+
         Label ipLabel = new Label("Ip Adress:", this.skin);
         final TextField ipAddress = new TextField("127.0.0.1", this.skin);
         table.add(ipLabel, ipAddress);
         table.row();
-        
+
         Label portLabel = new Label("Port:", this.skin);
         final TextField port = new TextField("7777", this.skin);
         table.add(portLabel, port);
         table.row();
-        
+
         Label userNameLabel = new Label("Username:", this.skin);
         final TextField userName = new TextField("", this.skin);
         table.add(userNameLabel, userName);
         table.row();
-        
+
         Label passWordLabel = new Label("Password:", this.skin);
         final TextField passWord = new TextField("", this.skin);
         passWord.setPasswordMode(true);
         passWord.setPasswordCharacter('*');
         table.add(passWordLabel, passWord);
         table.row();
-        
+
         TextButton back = new TextButton("Back", skin);
         back.addListener(new MenuStageListener() {
             @Override
@@ -246,7 +284,7 @@ public class MenuStage extends Stage {
 
         });
         table.add(back);
-        
+
         TextButton connect = new TextButton("Connect", skin);
         connect.addListener(new MenuStageListener() {
             @Override
@@ -257,13 +295,13 @@ public class MenuStage extends Stage {
 
         });
         table.add(connect);
-        
+
         return table;
     }
 
     private Table menuHost() {
         Table table = new Table();
-        
+
         TextButton loadWorld = new TextButton("Load World", skin);
         loadWorld.addListener(new MenuStageListener() {
             @Override
@@ -301,15 +339,15 @@ public class MenuStage extends Stage {
 
         return table;
     }
-    
+
     private Table menuLoadWorld() {
         Table table = new Table();
-        
+
         ScrollPane pane = new ScrollPane(table, this.skin);
-        
+
         //add a button for each world.
         FileHandle worlds = Gdx.files.internal("worlds/");
-        for(FileHandle file : worlds.list()) {
+        for (FileHandle file : worlds.list()) {
             TextButton newButton = new TextButton(file.nameWithoutExtension(), this.skin);
             final FileHandle finalizedFile = file;
             newButton.addListener(new MenuStageListener() {
@@ -318,17 +356,15 @@ public class MenuStage extends Stage {
                     super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
                     String[] args = {finalizedFile.nameWithoutExtension(), "7777"};
                     server = new MPServer(args);
-                    
                     server.start();
-                    
                     switchMenu(gotoWorld());
                 }
-                
+
             });
             table.add(newButton);
             table.row();
         }
-        
+
         TextButton back = new TextButton("Back", skin);
         back.addListener(new MenuStageListener() {
             @Override
@@ -339,7 +375,7 @@ public class MenuStage extends Stage {
 
         });
         table.add(back);
-        
+
         return table;
     }
 

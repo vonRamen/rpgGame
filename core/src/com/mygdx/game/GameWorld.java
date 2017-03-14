@@ -79,6 +79,7 @@ public class GameWorld {
         } else {
             //Sound2D.playMusic("Deep Forest.ogg");
             this.physicsWorld = new World(new Vector2(0f, 0f), false);
+            this.physicsWorld.setContactListener(new WorldContactListener());
             depthComparator = new DepthComparator();
             deltaTime = Gdx.graphics.getDeltaTime();
             objectsToBeAdded = new ArrayList();

@@ -83,6 +83,7 @@ public class WorldObject implements Drawable {
     public void sendUpdate() {
         GameWorld worldHold = this.world;
         this.world = null;
+        this.body = null;
         WorldObject.client.sendTCP(this);
         this.world = worldHold;
         initialize();

@@ -60,6 +60,7 @@ public class WorldGenerator extends Thread {
     private ArrayList<WorldObject> worldObjects;
     private int[][] tiles;
     private MPServer logDump;
+    private Texture previewImage;
 
     public WorldGenerator(int w, int h) {
         generationLog = new ArrayList();
@@ -74,7 +75,7 @@ public class WorldGenerator extends Thread {
     }
 
     /**
-     * 
+     *
      * @param logDump can be null
      */
     public void generate(MPServer logDump) {
@@ -93,11 +94,11 @@ public class WorldGenerator extends Thread {
         int iteration = h * 32 - w;
         int variation = 0;
         int yDir = random.nextBoolean() ? 1 : 1;
-        
+
         this.log("Corruptifies the world");
-        
+
         while (this.getPercent(4) < 15) {
-            generateLine(4, 0, iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
+            generateLine(4, 0+(w*32) / (variation+1), iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
             variation += h / 2;
             iteration -= h / 2;
         }
@@ -340,8 +341,8 @@ public class WorldGenerator extends Thread {
     }
 
     public void log(String string) {
-        if(this.logDump!=null) {
-            this.logDump.setLog("Generating World..: "+string);
+        if (this.logDump != null) {
+            this.logDump.setLog("Generating World..: " + string);
         }
         generationLog.add(string);
     }
@@ -406,5 +407,28 @@ public class WorldGenerator extends Thread {
             FileHandle fileHandler = new FileHandle(path + "chunks/tiles" + chunk.getX() + " " + chunk.getY() + ".json");
             fileHandler.writeString(str, false);
         }
+    }
+
+    private void generatePreview() {
+        Pixmap previewImage = new Pixmap(w * 32, h * 32, Pixmap.Format.RGBA8888);
+
+        //Generate image.
+        TextureRegion tile = Tile.get(tiles[0][0]).getTileTextureRegion();
+        tile.getTexture().getTextureData().prepare();
+        Pixmap tileMap = tile.getTexture().getTextureData().consumePixmap();
+        for (int y = 0; y < h * 32; y++) {
+            for (int x = 0; x < w * 32; x++) {
+                int c = tileMap.getPixel(tiles[y][x] * 32 + 32, 0);
+                previewImage.drawPixel(x, (h*32) - y + 1, c);
+            }
+        }
+        this.previewImage = new Texture(previewImage);
+    }
+    
+    public Texture getPreview() {
+        if(this.previewImage == null) {
+            this.generatePreview();
+        }
+        return this.previewImage;
     }
 }
