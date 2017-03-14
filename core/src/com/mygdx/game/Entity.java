@@ -177,12 +177,14 @@ public abstract class Entity implements Drawable, Cloneable {
     }
 
     public void move(float change_x, float change_y) {
-        float angle = (float) Math.atan2(change_y, change_x);
-        this.body.applyLinearImpulse(new Vector2(change_x * speed, change_y * speed), this.body.getWorldCenter(), false);
-        this.x = this.body.getPosition().x;
-        this.y = this.body.getPosition().y;
         if (changeX != 0 || changeY != 0) {
             this.state = EntityState.WALKING;
+        }
+        if (this.body != null) {
+            float angle = (float) Math.atan2(change_y, change_x);
+            this.x = this.body.getPosition().x;
+            this.y = this.body.getPosition().y;
+            this.body.applyLinearImpulse(new Vector2(change_x * speed, change_y * speed), this.body.getWorldCenter(), false);
         }
         /*
         if (!isNetworkObject) {

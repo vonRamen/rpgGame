@@ -9,6 +9,7 @@ import Persistence.GameObject;
 import Persistence.Tile;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Json;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,7 +32,7 @@ public class Chunk implements Runnable {
     private int x, y; //*32 *32
     private int[][] tiles;
     private int[][] collisionGrid;
- 
+
     private ArrayList<WorldObject> worldObjects;
     private ArrayList<Drawable> drawable;
     private String uId;
@@ -71,7 +72,7 @@ public class Chunk implements Runnable {
     public void update(double deltaTime) {
         this.deltaTime += deltaTime;
     }
-    
+
     public String getUId() {
         return uId;
     }
@@ -85,15 +86,26 @@ public class Chunk implements Runnable {
     }
 
     public void draw() {
+        Player p = this.world.getPlayer();
         for (int yy = 0; yy < getTiles().length; yy++) {
             for (int xx = 0; xx < getTiles().length; xx++) {
-                if (getTiles()[yy][xx] != -1) {
-                    Tile.get(getTiles()[yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                float distance = Vector2.dst(p.getX(), p.getY(), (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                if (distance < Game.settings.getViewDistance() && distance > Game.settings.getViewDistance() * 0.9) {
+                    float min = distance - Game.settings.getViewDistance() * 0.9f;
+                    float max = Game.settings.getViewDistance() - Game.settings.getViewDistance() * 0.9f;
+                    float closeness = min / max;
+                    Game.batch.setColor(1, 1, 1, 1 - closeness);
                 }
+                if (distance < Game.settings.getViewDistance()) {
+                    if (getTiles()[yy][xx] != -1) {
+                        Tile.get(getTiles()[yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                    }
+                }
+                Game.batch.setColor(1, 1, 1, 1);
             }
         }
     }
-    
+
     public void addObject(WorldObject worldObject) {
         worldObjects.add(worldObject);
     }
@@ -120,7 +132,7 @@ public class Chunk implements Runnable {
 //        }
 
     }
-    
+
     public void fillTile(int tile_id) {
         for (int iy = 0; iy < 32; iy++) {
             for (int ix = 0; ix < 32; ix++) {
@@ -190,28 +202,28 @@ public class Chunk implements Runnable {
             worldObject.generateUId();
         }
     }
-    
+
     public void flagObjectsForRemoval() {
         this.toBeRemoved = true;
-        for(WorldObject object : worldObjects) {
+        for (WorldObject object : worldObjects) {
             object.toBeRemoved = true;
         }
     }
-    
+
     public boolean isFlaggedForRemoval() {
         return toBeRemoved;
     }
-    
+
     public int[][] getCollisionGrid() {
-        if(collisionGrid == null) {
+        if (collisionGrid == null) {
             collisionGrid = new int[32][32];
-            for(WorldObject object : worldObjects) {
-                collisionGrid[(int) (object.getX() - this.x*32*32) / 32][(int) (object.getY()- this.y*32*32) / 32] = 1;
+            for (WorldObject object : worldObjects) {
+                collisionGrid[(int) (object.getX() - this.x * 32 * 32) / 32][(int) (object.getY() - this.y * 32 * 32) / 32] = 1;
             }
         }
         return collisionGrid;
     }
-    
+
     public boolean solidAt(int x, int y) {
         int[][] grid = getCollisionGrid();
         return grid[y][x] == 1;

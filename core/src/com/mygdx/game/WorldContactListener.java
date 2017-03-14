@@ -19,8 +19,7 @@ public class WorldContactListener implements ContactListener {
 
     @Override
     public void beginContact(Contact cntct) {
-        Fixture a = cntct.getFixtureA();
-        System.out.println("A: "+a);
+        
     }
 
     @Override

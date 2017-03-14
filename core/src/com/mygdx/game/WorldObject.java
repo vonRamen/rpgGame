@@ -56,7 +56,7 @@ public class WorldObject implements Drawable {
                         GameObject.get(id).getBounds().y + y,
                         GameObject.get(id).getBounds().width,
                         GameObject.get(id).getBounds().height);
-                        this.createBody();
+                this.createBody();
             } else {
                 this.rectangle = null;
             }
@@ -104,20 +104,30 @@ public class WorldObject implements Drawable {
 
     @Override
     public void draw() {
-        if (id != -1) {
-            Player player = world.getPlayer();
+        Player p = this.world.getPlayer();
+        float distance = Vector2.dst(p.getX(), p.getY(), this.x, this.y);
+        if (distance < Game.settings.getViewDistance() && distance > Game.settings.getViewDistance() * 0.9) {
+            float min = distance - Game.settings.getViewDistance() * 0.9f;
+            float max = Game.settings.getViewDistance() - Game.settings.getViewDistance() * 0.9f;
+            float closeness = min / max;
+            Game.batch.setColor(1, 1, 1, 1 - closeness);
+        }
+        if (distance < Game.settings.getViewDistance()) {
+            if (id != -1) {
+                Player player = world.getPlayer();
 
-            if (!GameObject.get(id).isGhostObject()) {
-                boolean hasPermissionToSeeAll = player.isXray() ? this.getPermissionLevel(player.getUId()) > 0 : false;
-                GameObject.get(id).draw(x, y, hasPermissionToSeeAll);
-            } else if (this.getPermissionLevel(player.getUId()) >= 2) {
-                Game.batch.setColor(0.2f, 0.4f, 0.5f, 0.6f);
-                GameObject.get(id).draw(x, y, false);
+                if (!GameObject.get(id).isGhostObject()) {
+                    boolean hasPermissionToSeeAll = player.isXray() ? this.getPermissionLevel(player.getUId()) > 0 : false;
+                    GameObject.get(id).draw(x, y, hasPermissionToSeeAll);
+                } else if (this.getPermissionLevel(player.getUId()) >= 2) {
+                    Game.batch.setColor(0.2f, 0.4f, 0.5f, 0.6f);
+                    GameObject.get(id).draw(x, y, false);
+                }
             }
         }
         Game.batch.setColor(Color.WHITE);
     }
-    
+
     public void drawShadow() {
         if (id != -1) {
             Player player = world.getPlayer();
@@ -236,7 +246,7 @@ public class WorldObject implements Drawable {
         }
         return 0;
     }
-    
+
     public void createBody() {
         BodyDef bdef = new BodyDef();
         bdef.type = BodyDef.BodyType.StaticBody;

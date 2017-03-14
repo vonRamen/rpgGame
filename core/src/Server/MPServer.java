@@ -94,7 +94,7 @@ public class MPServer implements Runnable {
         }
         this.world = new GameWorld(true, extraPath, null);
         this.port = port;
-        server = new Server(36384, 6048);
+        server = new Server(76343, 6048);
         server.addListener(new ServerListener(this));
         registerPackets();
         this.ready = true;

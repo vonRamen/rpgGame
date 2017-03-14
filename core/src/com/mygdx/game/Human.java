@@ -241,6 +241,7 @@ public class Human extends Entity {
                 Game.batch.draw(weaponSpriteReference, weaponSpriteReference.getX(), weaponSpriteReference.getY(), weaponSpriteReference.getOriginX(), weaponSpriteReference.getOriginY(), weaponSpriteReference.getWidth(), weaponSpriteReference.getHeight(), 1, 1, weaponSpriteReference.getRotation());
             }
         }
+        Game.batch.setColor(Color.WHITE);
     }
 
     public Inventory getInventory() {
