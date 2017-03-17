@@ -25,7 +25,7 @@ public class Player extends Human {
     private String path;
     private String lastTownUId;
     private boolean hasUpdatedInventory;
-    
+
     //whether or not the player wants to see begin walls.
     private boolean xray;
 
@@ -57,7 +57,7 @@ public class Player extends Human {
         if (town != null) {
             if (!town.getuId().equals(this.lastTownUId)) {
                 lastTownUId = town.getuId();
-                this.addAlert("Arrived at "+town.getName()+"\nDescription: "+town.getDescription(),AlertType.SCREEN);
+                this.addAlert("Arrived at " + town.getName() + "\nDescription: " + town.getDescription(), AlertType.SCREEN);
             }
         }
     }
@@ -80,14 +80,14 @@ public class Player extends Human {
     public static Player get(String path, String userName, String userPassword) {
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
         Json json = new Json();
-        Player player = json.fromJson(Player.class, fileHandle);
-        player.path = path;
-        if (player != null) {
-            if (player.userPassword.equals(userPassword)) {
-                return player;
-            }
+        Player player = null;
+        try {
+            player = json.fromJson(Player.class, fileHandle);
+        } catch (com.badlogic.gdx.utils.SerializationException e) {
+            generate(path, userName, userPassword);
+            player = json.fromJson(Player.class, fileHandle);
         }
-        return null;
+        return player;
     }
 
     public Alert getAlert() {

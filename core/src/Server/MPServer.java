@@ -48,7 +48,8 @@ public class MPServer implements Runnable {
     public static void main(String[] args) {
         String[] newArgs = {"Test", "7777"};
         MPServer server = new MPServer(newArgs);
-        server.start();
+        server.run();
+        server.startServer();
     }
 
     public void start() {

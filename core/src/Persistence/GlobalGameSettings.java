@@ -46,7 +46,7 @@ public class GlobalGameSettings {
     private float masterSoundVolume = 0.7f;
     private float masterMusicVolume = 1f;
     private int maxItemsDropped = 50;
-    private float viewDistance = 800f;
+    private float viewDistance = 1400f;
 
     /**
      * @return the keybindings
