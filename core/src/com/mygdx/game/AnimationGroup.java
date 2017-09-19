@@ -51,7 +51,7 @@ public class AnimationGroup implements ReportCreatable {
         loadAll();
     }
 
-    private static void loadAll() {
+    private static void loadAll() {  
         dirHandle = Gdx.files.internal(path + "data/");
         for (FileHandle f : dirHandle.list()) {
             AnimationGroup object = json.fromJson(AnimationGroup.class, f);

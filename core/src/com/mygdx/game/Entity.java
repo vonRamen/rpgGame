@@ -186,6 +186,11 @@ public abstract class Entity implements Drawable, Cloneable {
             this.y = this.body.getPosition().y;
             this.body.applyLinearImpulse(new Vector2(change_x * speed, change_y * speed), this.body.getWorldCenter(), false);
         }
+
+        if (bounds != null) {
+            bounds.x = x + boundsPattingX;
+            bounds.y = y + boundsPattingY;
+        }
         /*
         if (!isNetworkObject) {
             this.changeX = change_x;
@@ -447,6 +452,7 @@ public abstract class Entity implements Drawable, Cloneable {
             if (bounds.overlaps(item.getBounds())) {
                 int countLeft = inventory.addItem(item.getId(), item.getCount());
                 item.setCount(countLeft);
+                break;
             }
         }
     }

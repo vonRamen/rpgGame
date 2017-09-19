@@ -100,7 +100,7 @@ public class Inventory {
      * @return
      */
     public int addItem(int id, int count) {
-        int maxCount = GameItem.get(id).getStackSize();
+        int maxCount = Game.objectManager.getGameItem(id, false).getStackSize();
         int newCount = 0;
         System.out.println("id " + id);
 

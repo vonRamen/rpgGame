@@ -26,7 +26,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  * @author kristian
  */
-public class GameItem implements ReportCreatable {
+public class GameItem extends PersistenceFile implements ReportCreatable {
 
     private static ArrayList<GameItem> gameItems;
     protected static ArrayList<TextureRegion> itemTextures;
@@ -34,74 +34,26 @@ public class GameItem implements ReportCreatable {
     protected static KJson JSON;
     protected ArrayList<Action> actions;
     protected int id;
-    protected int sprite_id;
+    protected TextureRegion sprite;
     protected String name;
     protected String description;
     protected String fileName;
     private boolean bounce = true;
     protected int basePrice;
-    private int stackSize;
+    protected int stackSize;
 
     public GameItem() {
         basePrice = 0;
         stackSize = 30;
         actions = new ArrayList();
     }
-    
-    public static void load() {
-        KLoader<GameItem> loader = new KLoader();
-        gameItems = new ArrayList();
-//        GameItem g = new GameItem();
-//        g.name = "Spoon";
-//        g.description = "It's a spoon";
-//        g.id = 0;
-//        String str = json.toJson(g);
-//        
-//        FileHandle fileHandler = new FileHandle(path+"data/dummy.json");
-//        fileHandler.writeString(str, false);
-        //Load all images first.
-        itemTextures = new ArrayList();
- 
-        Texture texture = new Texture(path+"items.png");
-        System.out.println("Loading Items Texture..");
-        int xx = (int) (texture.getWidth() / 32);
-        int yy = (int) (texture.getHeight() / 32);
-        
-        for (int iy = 0; iy < yy; iy++) {
-            for (int ix = 0; ix < xx; ix++) {
-                TextureRegion txt = new TextureRegion(texture, ix * 32, iy * 32, 32, 32);
-                itemTextures.add(txt);
-            }
-        }
-        //Load json with data.
-        FileHandle dirHandle = Gdx.files.internal(path+"data/");
-        System.out.println("Files in data: "+dirHandle.list().length);
-        Json json = new Json();
-        int count = 0;
-        System.out.println("File location: "+dirHandle.path());
-        for(FileHandle file : dirHandle.list()) {
-            GameItem object = json.fromJson(GameItem.class, file);
-            object.fileName = file.name();
-            gameItems.add(object);
-        }
-        System.out.println("Items loaded: "+count);
-    }
-    
+
     public TextureRegion getTexture() {
-        return itemTextures.get(sprite_id);
+        return sprite;
     }
 
-    public static GameItem get(int id) {
-        for (GameItem gameItem : gameItems) {
-            if (gameItem.id == id) {
-                return gameItem;
-            }
-        }
-        return null;
-    }
-    
     public void draw(int x, int y) {
-        Game.batch.draw(itemTextures.get(this.id), x, y);
+        Game.batch.draw(Game.objectManager.getGameItem(this.id, false).getTexture(), x, y);
     }
 
     /**
@@ -110,12 +62,12 @@ public class GameItem implements ReportCreatable {
     public int getStackSize() {
         return stackSize;
     }
-    
+
     @Override
     public String toString() {
         return name;
     }
-    
+
     public ArrayList<Action> getActions() {
         return actions;
     }

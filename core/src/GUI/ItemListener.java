@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.mygdx.game.Game;
 import com.mygdx.game.Player;
 
 /**
@@ -44,7 +45,7 @@ public class ItemListener extends ClickListener {
         System.out.println("Listener is activating though..");
         int id = player.getInventory().getId(slotId);
         int count = player.getInventory().getCount(id);
-        GameItem item = GameItem.get(id);
+        GameItem item = Game.objectManager.getGameItem(id, false);
 
         if (item.getActions() == null) {
             return;

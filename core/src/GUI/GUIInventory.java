@@ -28,6 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.mygdx.game.Game;
 import com.mygdx.game.Inventory;
 import com.mygdx.game.Player;
 import javax.swing.GroupLayout;
@@ -79,7 +80,7 @@ public class GUIInventory extends GUIMovable {
             if (i % 4 == 0 && i != 0) {
                 table.row();
             }
-            Button button = new Button(new TextureRegionDrawable(GameItem.get(inventory.getId(i)).getTexture()));
+            Button button = new Button(new TextureRegionDrawable(Game.objectManager.getGameItem(inventory.getId(i), false).getTexture()));
             button.addListener(new ItemListener(i, Buttons.RIGHT, rightClickBox, skin, player));
             table.add(button);
 

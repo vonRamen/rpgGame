@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+
 import GUI.GUIStage;
 import GUI.MenuStage;
 import Persistence.GUIGraphics;
@@ -10,9 +11,13 @@ import Persistence.GameObject;
 import Persistence.GlobalGameSettings;
 import Persistence.Report;
 import Persistence.Sound2D;
+import Persistence.FileLoader;
+import Persistence.ObjectManager;
+import Persistence.TextureHandler;
 import Persistence.Weapon;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -48,23 +53,27 @@ public class Game extends ApplicationAdapter {
     public static boolean isDebug;
     private ScreenViewport viewPort;
     private Stage stage;
+    public static TextureHandler textureHandler;
+    public static ObjectManager objectManager;
 
     @Override
     public void create() {
+        Game.textureHandler = new TextureHandler("images/");
+        Game.objectManager = new ObjectManager();
+        Game.objectManager.loadAll();
         shadowShader = new ShaderProgram(Gdx.files.internal("shaders/shadow.vsh"), Gdx.files.internal("shaders/shadow.fsh"));
         playerName = "Kristian";
         playerPassword = "ubv59mve";
         screenW = 800;
         screenH = 600;
         isDebug = false;
-        GameItem.load();
         AnimationGroup.load();
         GameObject.loadObjects();
         Tile.load();
         Weapon.load();
         GUIGraphics.load();
         GameEntity.load();
-        Report.generateReports();
+        //Report.generateReports();
         settings = GlobalGameSettings.getInstance();
         Gdx.graphics.setCursor(Gdx.graphics.newCursor(GUIGraphics.getPixmap(("cursor.png")), 0, 0));
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
@@ -82,7 +91,8 @@ public class Game extends ApplicationAdapter {
         shapeRenderer.setAutoShapeType(true);
         gameState = GameState.MENU;
         world = new GameWorld(false, "", camera);
-        stage = new MenuStage(this);
+        //stage = new MenuStage(this);
+        joinGame("127.0.0.1", 7777, "Kristian", "");
         //Chunk.makeSample();
         ShaderProgram.pedantic = false;
     }
@@ -131,9 +141,7 @@ public class Game extends ApplicationAdapter {
 
             case LOADING:
                 //System.out.println("Loading..");
-                if (Loader.isLoaded()) {
                     gameState = GameState.PLAYING; //Switch to game, if all is loaded..
-                }
                 break;
             default:
                 break;

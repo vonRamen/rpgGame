@@ -17,6 +17,12 @@ public class DropItem {
 
     public DropItem() {
     }
+    
+    public DropItem(int id, int count, float chance) {
+        this.id = id;
+        this.count = count;
+        this.chance = chance;
+    }
 
     /**
      * @return the id

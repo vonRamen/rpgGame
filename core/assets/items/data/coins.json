@@ -1,3 +1,0 @@
-{
-	name:coins,description:"The currency of the world!",basePrice:1,sprite_id:3,id:3,stackSize:1000000
-}

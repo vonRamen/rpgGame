@@ -10,6 +10,7 @@ import com.mygdx.game.AlertType;
 import com.mygdx.game.Drawable;
 import com.mygdx.game.Entity;
 import com.mygdx.game.EntityAction;
+import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.Human;
 import com.mygdx.game.Player;
@@ -133,7 +134,7 @@ public class Action {
                 if (!human.getInventory().hasItem(item.getId(), item.getCount())) {
                     if (human instanceof Player) {
                         Player player = (Player) human;
-                        player.addAlert("Not sufficient amount of: " + GameItem.get(item.getId()).name, AlertType.WORLD);
+                        player.addAlert("Not sufficient amount of: " + Game.objectManager.getGameItem(item.getId(), false).name, AlertType.WORLD);
                     }
                     return false;
                 }
@@ -152,7 +153,7 @@ public class Action {
             if (!human.getInventory().hasItem(requiredEquipmentId, 1)) {
                 if (human instanceof Player) {
                     Player player = (Player) human;
-                    player.addAlert("Item " + GameItem.get(getRequiredEquipmentId()).name + " is required!", AlertType.WORLD);
+                    player.addAlert("Item " + Game.objectManager.getGameItem(getRequiredEquipmentId(), false).name + " is required!", AlertType.WORLD);
                 }
                 return false;
             }

@@ -22,6 +22,7 @@ public class Keybindings {
     public int toggleCombatMode = Input.Keys.Q;
     public int toggleWalls = Input.Keys.R;
     public int pickUpItem = Input.Keys.Z;
+    public int fuckBitches = 0;
 
     public Keybindings() {
 

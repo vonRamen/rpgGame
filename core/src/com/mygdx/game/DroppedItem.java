@@ -57,12 +57,12 @@ public class DroppedItem implements Drawable {
         ySpeed = 0.3f;
         yTime = 0;
         interpolation = Interpolation.bounceIn;
-        if (GameItem.get(id) == null) {
+        if (Game.objectManager.getGameItem(id, false) == null) {
             System.out.println("Warning! GameItem doesn't exist!");
-            gameItem = GameItem.get(0);
+            gameItem = Game.objectManager.getGameItem(0, false);
             return;
         }
-        gameItem = GameItem.get(id);
+        gameItem = Game.objectManager.getGameItem(id, false);
         this.name = gameItem.toString();
         bounds = new Rectangle(x + 4, y + 4, 8, 8);
         despawnTimer = 60;
@@ -76,7 +76,7 @@ public class DroppedItem implements Drawable {
     public void initialize() {
         interpolation = Interpolation.bounceIn;
         bounds = new Rectangle(x + 4, y + 4, 8, 8);
-        gameItem = GameItem.get(id);
+        gameItem = Game.objectManager.getGameItem(id, false);
     }
 
     private double lerp(double point0, double point1, double time) {
@@ -84,7 +84,7 @@ public class DroppedItem implements Drawable {
     }
 
     public void update(double deltaTime) {
-        if (GameItem.get(id).doesBounce()) {
+        if (Game.objectManager.getGameItem(id, false).doesBounce()) {
             yTime += ySpeed * deltaTime;
             lerp(yFlow, 16, yTime);
             if (yDirection == 1) {

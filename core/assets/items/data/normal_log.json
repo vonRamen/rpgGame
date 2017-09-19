@@ -1,4 +1,0 @@
-{
-	name:log,description:"This is a common log found throughout the world. Needs refinement.",basePrice:15,sprite_id:2,id:2,stackSize:1
-actions:[{name:fletch,itemGives:[{id:1,count:1,chance:100}],itemTakes:[{id:2,count:1,chance:100}],baseTime:2}]
-}
