@@ -20,71 +20,70 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Payload;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Source;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Target;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.mygdx.game.Game;
 import com.mygdx.game.Inventory;
 import com.mygdx.game.Player;
+import java.util.ArrayList;
 import javax.swing.GroupLayout;
 
 /**
  *
  * @author kristian
  */
-public class GUIInventory extends GUIMovable {
+public class GUIInventory {
 
-    private Table table;
+    private Window window;
     private float lastX, lastY;
+    private Player player;
+    private Skin skin;
+    private Table rightClickBox;
+    private DragAndDrop dragAndDrop;
+    private ArrayList<ButtonItem> buttons;
 
     public GUIInventory(Player player, Skin skin, Table rightClickBox) {
-        super(player, skin, rightClickBox);
-        table = new Table(skin);
+        this.buttons = new ArrayList();
+        this.rightClickBox = rightClickBox;
+        this.window = new Window("Inventory", skin);
+        this.player = player;
+        this.skin = skin;
+        this.dragAndDrop = new DragAndDrop();
         create();
     }
 
-    public Group getGroup() {
-        return root;
-    }
-
-    public void toggleVisibility() {
-        verticalGroup.setVisible(!verticalGroup.isVisible());
-    }
-
     private void create() {
-        lastX = verticalGroup.getX();
-        lastY = verticalGroup.getY();
-        verticalGroup.clear();
-        update();
-        Label label = new Label("Inventory", skin);
-        Button handleBar = new Button(GUIGraphics.get("inventory_handle.png"));
-        handleBar.addActor(label);
-        handleBar.setHeight(label.getHeight());
-        handleBar.addListener(new DragHandleListener(this.groupHandle));
-        label.setPosition(handleBar.getX() + handleBar.getWidth() / 2 - label.getWidth() / 2, 0);
-        verticalGroup.addActor(handleBar);
-        verticalGroup.addActor(table);
-        verticalGroup.setZIndex(0);
+        this.update();
     }
 
-    @Override
     public void update() {
-        table.clearChildren();
-        Inventory inventory = player.getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            if (i % 4 == 0 && i != 0) {
-                table.row();
-            }
-            Button button = new Button(new TextureRegionDrawable(Game.objectManager.getGameItem(inventory.getId(i), false).getTexture()));
-            button.addListener(new ItemListener(i, Buttons.RIGHT, rightClickBox, skin, player));
-            table.add(button);
+        this.window.clearChildren();
+        this.buttons.clear();
+        final Inventory inventory = player.getInventory();
 
-            //If the count is higher than 1, show number of item.
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ButtonItem button = new ButtonItem(new TextureRegionDrawable(Game.objectManager.getGameItem(inventory.getId(i), false).getTexture()), i);
+            this.buttons.add(button);
+            button.addListener(new ItemListener(i, Buttons.RIGHT, rightClickBox, skin, player));
+            if (i % 4 == 0 && i != 0) {
+                window.row();
+            }
+            window.add(button);
+
+            //Testing
+            //End Testing
             if (inventory.getCount(i) > 1) {
                 Label count = new Label(String.valueOf(inventory.getCount(i)), skin);
                 count.setColor(Color.WHITE);
@@ -108,7 +107,51 @@ public class GUIInventory extends GUIMovable {
                 button.add(count);
             }
         }
-        table.setBackground(GUIGraphics.get("inventory.png"));
-        table.pack();
+        makeDragable(this.buttons);
+        window.pack();
+    }
+
+    private void makeDragable(final ArrayList<ButtonItem> buttons) {
+        final Inventory inventory = player.getInventory();
+        for (ButtonItem btn : buttons) {
+            final ButtonItem button = btn;
+            dragAndDrop.addSource(new Source(button) {
+                public Payload dragStart(InputEvent event, float x, float y, int pointer) {
+                    Payload payload = new Payload();
+                    payload.setObject("Some payload!");
+
+                    System.out.println("Start: " + button.getSlotId());
+
+                    button.setVisible(false);
+                    payload.setDragActor(new ButtonItem(button.getBackground(), button.getSlotId()));
+
+                    return payload;
+                }
+            });
+
+            dragAndDrop.addTarget(new Target(button) {
+                @Override
+                public boolean drag(Source source, Payload pld, float f, float f1, int i) {
+                    return true;
+                }
+
+                @Override
+                public void drop(Source source, Payload pld, float f, float f1, int i) {
+                    
+                    System.out.println("Dropped on: " + ((ButtonItem) source.getActor()).getSlotId());
+                    inventory.changePosition(((ButtonItem) source.getActor()).getSlotId(), button.getSlotId());
+                    update();
+                }
+
+            });
+        }
+    }
+
+    public Window getWindow() {
+        return window;
+    }
+
+    public void toggleVisibility() {
+        this.window.setVisible(!this.window.isVisible());
     }
 }

@@ -450,6 +450,10 @@ public abstract class Entity implements Drawable, Cloneable {
         }
         for (DroppedItem item : world.getDroppedItems()) {
             if (bounds.overlaps(item.getBounds())) {
+                if (item.getCount() == 0) {
+                    continue;
+                }
+
                 int countLeft = inventory.addItem(item.getId(), item.getCount());
                 item.setCount(countLeft);
                 break;

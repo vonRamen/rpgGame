@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.esotericsoftware.kryonet.Client;
@@ -86,7 +87,6 @@ public class GUIStage extends Stage {
         this.client = client;
         this.world = world;
         multiPlexer = new InputMultiplexer();
-        multiPlexer.addProcessor(this);
         isDrawing = true;
         skin = new Skin(Gdx.files.internal("gui skins/uiskin.json"));
         this.player = player;
@@ -103,6 +103,7 @@ public class GUIStage extends Stage {
         this.addActor(rightClickMenu);
         this.addActor(this.townManagement.getRoot());
         this.addActor(screenMessages);
+        multiPlexer.addProcessor(this);
         Gdx.input.setInputProcessor(multiPlexer);
         this.camera = camera;
         this.messages = new ArrayList();
@@ -111,6 +112,7 @@ public class GUIStage extends Stage {
 
     @Override
     public void act() {
+        
         if (player != null) {
             //check alerts:
             checkAlert();
@@ -122,7 +124,7 @@ public class GUIStage extends Stage {
                 this.inventory.update();
                 player.setInventoryUpdate(false);
             }
-            if (this.getKeyboardFocus() == null) {
+            if (this.getKeyboardFocus() == null || this.getKeyboardFocus().getClass().equals(Window.class)) {
                 if (!player.isIsDead()) {
                     inputHandling();
                 }
@@ -170,12 +172,13 @@ public class GUIStage extends Stage {
     public void toggleInventory() {
         if (this.inventory == null) {
             inventory = new GUIInventory(player, skin, rightClickMenu);
-            Group invGroup = inventory.getGroup();
+            Group invGroup = inventory.getWindow();
             this.addActor(invGroup);
+            
         } else {
             inventory.toggleVisibility();
             if (this.getActors().size < 1) {
-                this.addActor(inventory.getGroup());
+                this.addActor(inventory.getWindow());
             }
         }
     }
@@ -187,7 +190,7 @@ public class GUIStage extends Stage {
     @Override
     public boolean keyDown(int keycode) {
         super.keyDown(keycode);
-        if (this.getKeyboardFocus() == null) {
+        if (this.getKeyboardFocus() == null || this.getKeyboardFocus().getClass().equals(Window.class)) {
             if (keycode == Input.Keys.D || keycode == Input.Keys.W || keycode == Input.Keys.A || keycode == Input.Keys.S) {
                 rightClickMenu.clear();
             }
@@ -198,7 +201,7 @@ public class GUIStage extends Stage {
     @Override
     public boolean keyUp(int keycode) {
         super.keyUp(keycode);
-        if (this.getKeyboardFocus() == null) {
+        if (this.getKeyboardFocus() == null || this.getKeyboardFocus().getClass().equals(Window.class)) {
             if (keycode == Game.settings.getKeybindings().toggleInventory) {
                 toggleInventory();
             }
