@@ -8,18 +8,27 @@ package GUI;
 import Persistence.GUIGraphics;
 import Persistence.GameObject;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
+import com.badlogic.gdx.scenes.scene2d.ui.Tooltip;
+import com.badlogic.gdx.scenes.scene2d.ui.Value;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.mygdx.game.AlertType;
+import com.mygdx.game.Drawable;
 import com.mygdx.game.Game;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.Player;
@@ -34,13 +43,13 @@ import com.mygdx.game.Town;
 public class GUITown extends GUIMovable {
 
     private Table createMenu;
-    private Table buildMenu;
+    private Window buildMenu;
     private VerticalGroup townManager;
     private VerticalGroup currentTownManaging;
     private GameWorld world;
     private ClickHistory tileClickHistory;
     private Click draggedClick;
-    private int chosenBuildObjectId = 9;
+    private int chosenBuildObjectId = 0;
 
     public GUITown(Player player, Skin skin, Table rightClickBox) {
         super(player, skin, rightClickBox);
@@ -196,7 +205,6 @@ public class GUITown extends GUIMovable {
             Game.shapeRenderer.rect(xTile * 32, yTile * 32, wTile * 32, hTile * 32);
         }
     }
-    
 
     void setDraggedClick(Click click) {
         this.draggedClick = click;
@@ -257,8 +265,70 @@ public class GUITown extends GUIMovable {
         currentTownManaging.setVisible(true);
     }
 
-    private Table createBuildMenu() {
-        Table table = new Table();
+    private Window createBuildMenu() {
+        Window window = new Window("Build!", this.skin);
+
+        Button wall = new Button(new TextureRegionDrawable(Game.textureHandler.generateRegion("world.png", 0, 32, 32, 32)));
+        Button floor = new Button(new TextureRegionDrawable(Game.textureHandler.generateRegion("world.png", 0, 32 * 3, 32, 32)));
+        Button door = new Button(new TextureRegionDrawable(Game.textureHandler.generateRegion("world.png", 32, 5 * 32, 32, 32)));
+        Button roof = new Button(new TextureRegionDrawable(Game.textureHandler.generateRegion("world.png", 3 * 32, 4 * 32, 32, 32)));
+
+        VerticalGroup categories = new VerticalGroup();
+        categories.addActor(wall);
+        categories.addActor(floor);
+        categories.addActor(door);
+        categories.addActor(roof);
+
+        final VerticalGroup itemsShowing = new VerticalGroup();
+        itemsShowing.align(Align.topLeft);
+        roof.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                updateGroup(GameObject.ObjectType.ROOF, itemsShowing);
+            }
+
+        });
+
+        wall.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                updateGroup(GameObject.ObjectType.WALL, itemsShowing);
+            }
+
+        });
+        door.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                updateGroup(GameObject.ObjectType.DOOR, itemsShowing);
+            }
+
+        });
+
+        floor.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                updateGroup(GameObject.ObjectType.FLOOR, itemsShowing);
+            }
+
+        });
+        window.align(Align.topLeft);
+        categories.pad(0, 2, 0, 4);
+        categories.pack();
+        itemsShowing.pad(0, 2, 0, 4);
+        itemsShowing.pack();
+        Container container = new Container(itemsShowing);
+        container.setBackground(new TextureRegionDrawable(Game.textureHandler.generateRegion("world.png", 32, 0, 32, 32)));
+        container.height(categories.getHeight());
+        window.add(categories, container);
+        //window.pack();
+        window.setVisible(false);
+        
+
+        /*
         TextButton handleBar = new TextButton("Build!", this.skin);
         handleBar.addListener(new DragHandleListener(table));
         table.add(handleBar);
@@ -280,7 +350,33 @@ public class GUITown extends GUIMovable {
         }
         table.pack();
         table.setVisible(false);
-        return table;
+         */
+        return window;
+    }
+
+    private void updateGroup(GameObject.ObjectType type, Group group) {
+        group.clear();
+        for (GameObject object : GameObject.getAllGhostObjects()) {
+            final GameObject obj = object;
+            if (object.getObjectType().equals(type)) {
+                Button button = new Button(object.getSpriteIcon());
+
+                button.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        super.clicked(event, x, y); //To change body of generated methods, choose Tools | Templates.
+                        chosenBuildObjectId = obj.getId();
+                        player.addAlert("Chosen object id: " + obj.getId(), AlertType.SCREEN);
+                    }
+
+                });
+                TextTooltip t = new TextTooltip(object.getName(), skin);
+                t.setInstant(true);
+                button.addListener(t);
+                group.addActor(button);
+            }
+        }
+        
     }
 
     public boolean buildMoveIsActive() {

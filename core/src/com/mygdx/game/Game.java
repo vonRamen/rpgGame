@@ -28,6 +28,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,7 +44,7 @@ public class Game extends ApplicationAdapter {
     }
     private GameState gameState;
     private GameWorld world;
-    private OrthographicCamera camera;
+    public static OrthographicCamera camera;
     private int screenW, screenH;
     private MPClient client;
     private String playerName;
@@ -68,7 +69,6 @@ public class Game extends ApplicationAdapter {
         screenH = 600;
         isDebug = false;
         AnimationGroup.load();
-        GameObject.loadObjects();
         Tile.load();
         Weapon.load();
         GUIGraphics.load();
@@ -168,6 +168,7 @@ public class Game extends ApplicationAdapter {
             ((MenuStage) this.stage).resize();
         }
         this.stage.getViewport().update(width, height, true);
+        this.world.setFrameBufferSize(width, height);
     }
     
     public void joinGame(String ip, int port, String playerName, String playerPassword) {

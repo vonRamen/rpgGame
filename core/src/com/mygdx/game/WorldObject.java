@@ -50,25 +50,34 @@ public class WorldObject implements Drawable {
     }
 
     public void initialize() {
+        if (this.body != null) {
+            this.body.setActive(false);
+        }
         if (id != -1) {
-            if (GameObject.get(id) != null && GameObject.get(id).getBounds() != null) {
-                this.rectangle = new Rectangle(GameObject.get(id).getBounds().x + x, //Set's the bounds to be like the one in the GameObject
-                        GameObject.get(id).getBounds().y + y,
-                        GameObject.get(id).getBounds().width,
-                        GameObject.get(id).getBounds().height);
-                this.createBody();
+
+            if (Game.objectManager.getGameObject(id) != null && Game.objectManager.getGameObject(id).getBounds() != null) {
+                this.rectangle = new Rectangle(Game.objectManager.getGameObject(id).getBounds().x + x, //Set's the bounds to be like the one in the GameObject
+                        Game.objectManager.getGameObject(id).getBounds().y + y,
+                        Game.objectManager.getGameObject(id).getBounds().width,
+                        Game.objectManager.getGameObject(id).getBounds().height);
+                if (this.body == null) {
+                    this.createBody();
+                } else {
+                    this.body.setActive(true);
+                }
             } else {
                 this.rectangle = null;
             }
-            this.updateTimer = GameObject.get(id).getRespawnTime();
+            this.updateTimer = Game.objectManager.getGameObject(id).getRespawnTime();
         } else {
             this.toBeRemoved = true;
+
         }
     }
 
     public void update(double deltaTime) {
         if (id != -1) {
-            GameObject.get(id).update(this, deltaTime);
+            Game.objectManager.getGameObject(id).update(this, deltaTime);
         }
     }
 
@@ -83,8 +92,10 @@ public class WorldObject implements Drawable {
     public void sendUpdate() {
         GameWorld worldHold = this.world;
         this.world = null;
+        Body bodyhold = body;
         this.body = null;
         WorldObject.client.sendTCP(this);
+        this.body = bodyhold;
         this.world = worldHold;
         initialize();
     }
@@ -114,27 +125,31 @@ public class WorldObject implements Drawable {
         }
         if (distance < Game.settings.getViewDistance()) {
             if (id != -1) {
-                Player player = world.getPlayer();
 
-                if (!GameObject.get(id).isGhostObject()) {
-                    boolean hasPermissionToSeeAll = player.isXray() ? this.getPermissionLevel(player.getUId()) > 0 : false;
-                    GameObject.get(id).draw(x, y, hasPermissionToSeeAll);
-                } else if (this.getPermissionLevel(player.getUId()) >= 2) {
+                if (!Game.objectManager.getGameObject(id).isGhostObject()) {
+                    boolean hasPermissionToSeeAll = p.isXray() ? this.getPermissionLevel(p.getUId()) > 0 : false;
+                    Game.objectManager.getGameObject(id).draw(x, y, hasPermissionToSeeAll);
+                } else if (this.getPermissionLevel(p.getUId()) >= 2) {
                     Game.batch.setColor(0.2f, 0.4f, 0.5f, 0.6f);
-                    GameObject.get(id).draw(x, y, false);
+                    Game.objectManager.getGameObject(id).draw(x, y, false);
                 }
             }
         }
         Game.batch.setColor(Color.WHITE);
     }
 
+    @Override
     public void drawShadow() {
-        if (id != -1) {
-            Player player = world.getPlayer();
+        Player p = this.world.getPlayer();
+        float distance = Vector2.dst(p.getX(), p.getY(), this.x, this.y);
+        if (distance < Game.settings.getViewDistance()) {
+            Game.objectManager.getGameObject(id).drawShadow(x, y, false);
+        }
+    }
 
-            if (!GameObject.get(id).isGhostObject()) {
-                GameObject.get(id).drawShadow(x, y, false);
-            }
+    public void drawLights() {
+        if (id != -1) {
+            Game.objectManager.getGameObject(id).drawLights(x, y);
         }
     }
 
@@ -146,7 +161,7 @@ public class WorldObject implements Drawable {
     public ArrayList<Action> getActions(String uId) {
         int permissionLevel = this.getPermissionLevel(uId);
         ArrayList<Action> returnActions = new ArrayList();
-        for (Action action : GameObject.get(id).getActions()) {
+        for (Action action : Game.objectManager.getGameObject(id).getActions()) {
             if (action.getPermissionLevel() <= permissionLevel) {
                 returnActions.add(action);
             }
@@ -156,7 +171,7 @@ public class WorldObject implements Drawable {
 
     @Override
     public ArrayList<Action> getActions() {
-        return GameObject.get(id).getActions();
+        return Game.objectManager.getGameObject(id).getActions();
     }
 
     @Override
@@ -166,7 +181,7 @@ public class WorldObject implements Drawable {
 
     @Override
     public String toString() {
-        return GameObject.get(id).getName();
+        return Game.objectManager.getGameObject(id).getName();
     }
 
     public String getUid() {
@@ -241,8 +256,8 @@ public class WorldObject implements Drawable {
 
     @Override
     public float getZ() {
-        if (GameObject.get(id) != null) {
-            return GameObject.get(id).getzIndex();
+        if (Game.objectManager.getGameObject(id) != null) {
+            return Game.objectManager.getGameObject(id).getzIndex();
         }
         return 0;
     }

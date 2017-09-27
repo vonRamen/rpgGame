@@ -23,6 +23,6 @@ public class EntitySimpleType extends Entity {
     }
     
     public void setUid(String uid) {
-        this.uId = uid;
+        this.setuId(uid);
     }
 }

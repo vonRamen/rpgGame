@@ -5,7 +5,9 @@
  */
 package Persistence.Items;
 
+import Persistence.Action;
 import Persistence.GameItem;
+import com.mygdx.game.Entity;
 import com.mygdx.game.Game;
 
 /**
@@ -20,6 +22,19 @@ public class IronAxe extends GameItem {
         this.basePrice = 155;
         this.id = 4;
         this.sprite = Game.textureHandler.generateRegion("items.png", 128, 0, 32, 32);
+        
+        
+        Action action = new Action("Teleport to 0, 0") {
+            @Override
+            public void executeSpecialEvent(Entity entity) {
+                entity.setX(0);
+                entity.setY(0);
+            }
+            
+        };
+        action.setMaxDistance(0);
+        
+        actions.add(action);
     }
     
 }

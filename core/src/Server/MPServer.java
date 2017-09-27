@@ -5,10 +5,6 @@
  */
 package Server;
 
-import Persistence.GameObject;
-import Persistence.NoiseGenerator;
-import Utility.Grid;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Server;
@@ -17,10 +13,7 @@ import com.mygdx.game.KKryo;
 import com.mygdx.game.Player;
 import com.mygdx.game.ServerListener;
 import com.mygdx.game.WorldGenerator;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

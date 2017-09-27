@@ -125,10 +125,6 @@ public class DroppedItem implements Drawable {
         if (shadowAlpha < 0) {
             shadowAlpha = 0;
         }
-        //draw shadow
-        Game.batch.setColor(0, 0, 0, shadowAlpha);
-        Game.batch.draw(gameItem.getTexture(), x + xFlow, y - 4 - yFlow);
-        Game.batch.setColor(Color.WHITE);
         //Draw item
         Game.batch.setColor(1, 1, 1, alpha);
         gameItem.draw(x + (int) xFlow, y + (int) yFlow);
@@ -225,6 +221,12 @@ public class DroppedItem implements Drawable {
     @Override
     public float getZ() {
         return this.z;
+    }
+
+    @Override
+    public void drawShadow() {
+        //draw shadow
+        Game.batch.draw(gameItem.getTexture(), x + xFlow, y - 4 - yFlow);
     }
 
 }

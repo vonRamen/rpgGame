@@ -30,12 +30,10 @@ public class Action {
     private String requiredSkill;
     private int expGain;
     private float baseTime;
-    private float maxDistance;
-    private int requiredEquipmentId;
-    private boolean doesRequireEquipment;
-    private boolean doesTransform; //Does the tree transform into a stump after chop?
-    private int transformIntoId;
-    private boolean doesDrop;
+    private float maxDistance = 10000;
+    private int requiredEquipmentId = 0;
+    private int transformIntoId = -1;
+    private boolean transforms;
     private ArrayList<DropItem> itemDrops;
     private ArrayList<DropItem> itemGives;
     private ArrayList<DropItem> itemTakes;
@@ -45,7 +43,7 @@ public class Action {
     private String soundEffect;
     private boolean soundIsLooping;
     private Sound2D activeSound;
-    
+
     //Permissions
     //0 : everybody
     //1 : guest
@@ -58,6 +56,7 @@ public class Action {
     }
 
     public Action(String name) {
+        super();
         this.name = name;
     }
 
@@ -70,11 +69,11 @@ public class Action {
 
         if (object != null) {
             if (object instanceof WorldObject) {
-                if (isDoesTransform()) {
+                if (doesTransform()) {
                     WorldObject worldObject = (WorldObject) object;
                     worldObject.setId(getTransformIntoId());
                 }
-                if (isDoesDrop()) {
+                if (dropsItem()) {
                     //random number generator
                     float dropPercent = getRGN().nextFloat() * 100;
                     GameWorld world = human.getWorld();
@@ -114,6 +113,7 @@ public class Action {
         if (getActiveSound() != null) {
             getActiveSound().stop();
         }
+        this.executeSpecialEvent(human);
         return true;
     }
 
@@ -171,8 +171,9 @@ public class Action {
         }
         if (canExecute(human, object)) {
             if (this.getSoundEffect() != null) {
-                if(getActiveSound()!=null)
+                if (getActiveSound() != null) {
                     getActiveSound().stop();
+                }
                 setActiveSound(new Sound2D(this.getSoundEffect()));
                 Player player = human.getWorld().getPlayer();
                 getActiveSound().play(human.getWorld().getPlayer(), human, isSoundIsLooping());
@@ -309,29 +310,15 @@ public class Action {
     /**
      * @return the doesRequireEquipment
      */
-    public boolean isDoesRequireEquipment() {
-        return doesRequireEquipment;
-    }
-
-    /**
-     * @param doesRequireEquipment the doesRequireEquipment to set
-     */
-    public void setDoesRequireEquipment(boolean doesRequireEquipment) {
-        this.doesRequireEquipment = doesRequireEquipment;
+    public boolean requiresEquipment() {
+        return this.requiredEquipmentId != -1;
     }
 
     /**
      * @return the doesTransform
      */
-    public boolean isDoesTransform() {
-        return doesTransform;
-    }
-
-    /**
-     * @param doesTransform the doesTransform to set
-     */
-    public void setDoesTransform(boolean doesTransform) {
-        this.doesTransform = doesTransform;
+    public boolean doesTransform() {
+        return transforms;
     }
 
     /**
@@ -345,22 +332,18 @@ public class Action {
      * @param transformIntoId the transformIntoId to set
      */
     public void setTransformIntoId(int transformIntoId) {
-        setDoesTransform(true);
+        this.transforms = true;
         this.transformIntoId = transformIntoId;
     }
 
     /**
      * @return the doesDrop
      */
-    public boolean isDoesDrop() {
-        return doesDrop;
-    }
-
-    /**
-     * @param doesDrop the doesDrop to set
-     */
-    public void setDoesDrop(boolean doesDrop) {
-        this.doesDrop = doesDrop;
+    public boolean dropsItem() {
+        if (itemDrops == null) {
+            return false;
+        }
+        return getItemDrops().size() > 0;
     }
 
     /**
@@ -466,5 +449,12 @@ public class Action {
      */
     public void setPermissionLevel(int permissionLevel) {
         this.permissionLevel = permissionLevel;
+    }
+
+    /**
+     *
+     * @param entity
+     */
+    public void executeSpecialEvent(Entity entity) {
     }
 }

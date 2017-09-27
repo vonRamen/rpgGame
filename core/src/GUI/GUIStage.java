@@ -112,7 +112,7 @@ public class GUIStage extends Stage {
 
     @Override
     public void act() {
-        
+
         if (player != null) {
             //check alerts:
             checkAlert();
@@ -174,7 +174,7 @@ public class GUIStage extends Stage {
             inventory = new GUIInventory(player, skin, rightClickMenu);
             Group invGroup = inventory.getWindow();
             this.addActor(invGroup);
-            
+
         } else {
             inventory.toggleVisibility();
             if (this.getActors().size < 1) {
@@ -473,7 +473,7 @@ public class GUIStage extends Stage {
             } else {
                 Game.batch.setColor(0.8f, 0.3f, 0.3f, 0.7f);
             }
-            GameObject.get(townManagement.getIdBuildItem()).draw(roundedPositionX, roundedPositionY, false);
+            Game.objectManager.getGameObject(townManagement.getIdBuildItem()).draw(roundedPositionX, roundedPositionY, false);
             Game.batch.setColor(Color.WHITE);
         }
         this.worldClickHandler.draw();

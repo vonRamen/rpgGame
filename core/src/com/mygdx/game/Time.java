@@ -11,30 +11,51 @@ package com.mygdx.game;
  */
 public class Time {
 
-    private final double maxTime = 1440;
+    private final double MAXTIME = 1440;
+    private double dawnAt, duskAt;
     private double time;
     private int day;
-    private float lightIntensity;
+    private float darknessIntensity;
+    private final String[] WEEKDAYS = new String[]{
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    };
 
     /**
      * time = days in minutes.
-     * @param time 
+     *
+     * @param time
      */
     public Time(double time) {
         this.time = time;
-        this.lightIntensity = 1f;
+        this.darknessIntensity = 0f;
+        this.dawnAt = 6 * 60;
+        this.duskAt = 21 * 60;
     }
 
     public void update(double deltaTime) {
-        time+=deltaTime;
-        
-        if(time > 1440) {
-            time -= maxTime;
+        time += deltaTime;
+
+        if (time > 1440) {
+            time -= MAXTIME;
             day++;
         }
+        if ((this.time < this.dawnAt || this.time > this.duskAt) && this.darknessIntensity < 0.8f) {
+            this.darknessIntensity += deltaTime / 30;
+        } else {
+            if (this.darknessIntensity != 0) {
+                this.darknessIntensity -= deltaTime / 30;
+                if (this.darknessIntensity < 0) {
+                    this.darknessIntensity = 0;
+                }
+            }
+        }
     }
-    
+
     public int getHour() {
         return (int) time / 60;
+    }
+
+    public float getIntensityOfDarkness() {
+        return this.darknessIntensity;
     }
 }

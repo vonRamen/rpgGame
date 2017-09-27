@@ -10,6 +10,7 @@ package Persistence;
  * @author Kristian
  */
 public class PersistenceFile {
+
     private int id;
 
     /**

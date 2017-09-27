@@ -5,12 +5,16 @@
  */
 package com.mygdx.game;
 
-import Persistence.GameObject;
 import Persistence.Sound2D;
 import Server.WorldSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
@@ -51,6 +55,7 @@ public class GameWorld {
     private World physicsWorld;
     private Client client;
     private Time time;
+    private FrameBuffer fbo;
 
     public GameWorld(boolean isServer, String extraPath, OrthographicCamera camera) {
         this.camera = camera;
@@ -60,7 +65,7 @@ public class GameWorld {
         this.droppedItems = new ArrayList();
         this.objectsToBeRemoved = new ArrayList();
         this.towns = new HashMap();
-        this.time = new Time(8 * 60);
+        this.time = new Time(12 * 60);
         size = 5;
         fieldOfView = 1;
         if (isServer) {
@@ -77,6 +82,7 @@ public class GameWorld {
                 chunks.add(chunk);
             }
         } else {
+            this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, (int) camera.viewportWidth, (int) camera.viewportHeight, false);
             //Sound2D.playMusic("Deep Forest.ogg");
             this.physicsWorld = new World(new Vector2(0f, 0f), false);
             this.physicsWorld.setContactListener(new WorldContactListener());
@@ -89,6 +95,10 @@ public class GameWorld {
         //Chunk.makeSample();
         //Chunk.makeSampleTest();
         //WorldGenerator.generate(10, 10);
+    }
+
+    public void setFrameBufferSize(int w, int h) {
+        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
     }
 
     public GameWorld() {
@@ -105,7 +115,7 @@ public class GameWorld {
                 chunk.flagObjectsForRemoval();
             }
         }
-        */
+         */
         if (this.lastPlayerX != this.player.getChunkX() || this.lastPlayerY != this.player.getChunkY()) {
             this.lastPlayerX = this.player.getChunkX();
             this.lastPlayerY = this.player.getChunkY();
@@ -114,8 +124,8 @@ public class GameWorld {
             int rangeY = fieldOfView;
 
             for (Chunk chunk : this.chunks) {
-                if (chunk.getX() < this.lastPlayerX-rangeX || chunk.getX() > this.lastPlayerX+rangeX
-                        || chunk.getY() < this.lastPlayerY-rangeY || chunk.getY() > this.lastPlayerY+rangeY) {
+                if (chunk.getX() < this.lastPlayerX - rangeX || chunk.getX() > this.lastPlayerX + rangeX
+                        || chunk.getY() < this.lastPlayerY - rangeY || chunk.getY() > this.lastPlayerY + rangeY) {
                     ArrayList<WorldObject> worldObjects = chunk.getWorldObjects();
                     chunk.flagObjectsForRemoval();
                 }
@@ -189,7 +199,7 @@ public class GameWorld {
     }
 
     public boolean legalToPlaceObject(int id, int x, int y) {
-        if (GameObject.get(id) == null) {
+        if (Game.objectManager.getGameObject(id) == null) {
             return false;
         }
         int tileX = (int) (x / 32);
@@ -202,11 +212,11 @@ public class GameWorld {
             //return false;
         }*/
         boolean hasSomethingToPlaceOn = true;
-        if (GameObject.get(id).getzIndex() > 0) {
+        if (Game.objectManager.getGameObject(id).getzIndex() > 0) {
             hasSomethingToPlaceOn = false;
         }
         for (WorldObject object : worldObjectsAtLocation(x, y)) {
-            if (object.getZ() < GameObject.get(id).getzIndex()) {
+            if (object.getZ() < Game.objectManager.getGameObject(id).getzIndex()) {
                 hasSomethingToPlaceOn = true;
             } else {
                 return false;
@@ -280,7 +290,7 @@ public class GameWorld {
 
     public void update() {
         //update music fadeout and such..
-        this.physicsWorld.step(1 / 60f, 6, 2);
+        this.physicsWorld.step((float) this.deltaTime, 6, 2);
         Sound2D.updateMusic(deltaTime);
         deltaTime = Gdx.graphics.getDeltaTime();
         this.time.update(deltaTime);
@@ -401,15 +411,75 @@ public class GameWorld {
 
     public void draw() {
         try {
+
+            Game.batch.setShader(null);
             for (Chunk c : chunks) {
                 c.draw();
             }
+            //Start draw shadows:
+            Game.batch.end();
+            Game.batch.begin();
+
+            fbo.begin();
+
+            Gdx.gl.glClearColor(1, 1, 1, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            Game.batch.setColor(Color.BLACK);
+            for (Drawable d : drawOrder) {
+                d.drawShadow();
+            }
+            Game.batch.setColor(Color.WHITE);
+            for (Drawable d : drawOrder) {
+                if (d instanceof WorldObject) {
+                    ((WorldObject) d).drawLights();
+                }
+            }
+            Game.batch.end();
+            fbo.end();
+
+            Game.batch.begin();
+            Game.shadowShader.begin();
+            Game.shadowShader.setUniformf("lighting", 0.0f);
+            Game.shadowShader.setUniformf("darknessIntensity", this.time.getIntensityOfDarkness());
+            Game.shadowShader.end();
+
+            Game.batch.setShader(Game.shadowShader);
+            Game.batch.draw(new TextureRegion(fbo.getColorBufferTexture()), Game.camera.position.x - +Game.camera.viewportWidth / 2 * camera.zoom, Game.camera.position.y + Game.camera.viewportHeight / 2 * camera.zoom, 0, 0, fbo.getColorBufferTexture().getWidth(), fbo.getColorBufferTexture().getHeight(), 1 * camera.zoom, -1 * camera.zoom, 0);
+            Game.batch.end();
+
+            //End draw shadows.
+            Game.batch.begin();
+            Game.batch.setShader(null);
             for (DroppedItem d : getDroppedItems()) {
                 d.draw();
             }
             for (Drawable d : drawOrder) {
                 d.draw();
             }
+
+            //Begin draw lighting
+            Game.batch.end();
+            Game.batch.begin();
+
+            fbo.begin();
+            Gdx.gl.glClearColor(0, 0, 0, this.time.getIntensityOfDarkness());
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+            for (Drawable d : drawOrder) {
+                if (d instanceof WorldObject) {
+                    ((WorldObject) d).drawLights();
+                }
+            }
+            Game.batch.end();
+            fbo.end();
+
+            Game.batch.begin();
+            Game.shadowShader.begin();
+            Game.shadowShader.setUniformf("lighting", 1.0f);
+            Game.shadowShader.end();
+            Game.batch.setShader(Game.shadowShader);
+            Game.batch.draw(new TextureRegion(fbo.getColorBufferTexture()), Game.camera.position.x - +Game.camera.viewportWidth / 2, Game.camera.position.y + Game.camera.viewportHeight / 2, 0, 0, fbo.getColorBufferTexture().getWidth(), fbo.getColorBufferTexture().getHeight(), 1, -1, 0);
+
         } catch (ConcurrentModificationException exception) {
             System.out.println("Would have generated a: " + exception);
         }
@@ -528,9 +598,7 @@ public class GameWorld {
                     chunk.setWorld(this);
                     chunk.initialize();
                     this.addChunk(chunk);
-                    Iterator it = chunk.getWorldObjects().iterator();
-                    while (it.hasNext()) {
-                        WorldObject worldO = (WorldObject) it.next();
+                    for (WorldObject worldO : chunk.getWorldObjects()) {
                         worldO.setWorld(this);
                         getDrawable().add(worldO);
                     }

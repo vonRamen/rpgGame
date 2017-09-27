@@ -34,11 +34,10 @@ public class KKryo {
         kryo.register(ArrayList.class);
         kryo.register(WorldObject.class);
         kryo.register(Drawable.class);
-        kryo.register(Integer[][].class);
-        kryo.register(Integer[].class);
         kryo.register(Entity.class);
         kryo.register(Human.class);
         kryo.register(Player.class);
+        kryo.register(int[][][].class);
         kryo.register(int[][].class);
         kryo.register(int[].class);
         kryo.register(EntitySimpleType.class);

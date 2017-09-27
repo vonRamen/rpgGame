@@ -98,7 +98,7 @@ public class WorldGenerator extends Thread {
         this.log("Corruptifies the world");
 
         while (this.getPercent(4) < 15) {
-            generateLine(4, 0+(w*32) / (variation+1), iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
+            generateLine(4, 0 + (w * 32) / (variation + 1), iteration + variation * yDir, w * 32, iteration + variation / 2 * (-yDir), w + variation / 4 * yDir, 2);
             variation += h / 2;
             iteration -= h / 2;
         }
@@ -270,7 +270,7 @@ public class WorldGenerator extends Thread {
                 //iterate through that part of the tiles list
                 for (int iy = 0; iy < 32; iy++) {
                     for (int ix = 0; ix < 32; ix++) {
-                        chunk.getTiles()[iy][ix] = tiles[iy + y * 32][ix + x * 32];
+                        chunk.getTilesAndObjects()[0][iy][ix] = tiles[iy + y * 32][ix + x * 32];
                     }
                 }
 
@@ -356,6 +356,7 @@ public class WorldGenerator extends Thread {
         return "Generating: " + returnString + "\n";
     }
 
+    /*
     public void generateImage() {
         Collections.sort(this.worldObjects, new DepthComparator());
         BufferedImage image = new BufferedImage(w * 32 * 32, h * 32 * 32, BufferedImage.TYPE_INT_ARGB);
@@ -373,24 +374,22 @@ public class WorldGenerator extends Thread {
                 }
             }
         }
-
-        Texture objectSprite = GameObject.getSprite(0).getTexture();
+        TextureRegion objectSpriteRegion = Game.objectManager.getGameObject(0).getSprite();
+        Texture objectSprite = objectSpriteRegion.getTexture();
         objectSprite.getTextureData().prepare();
         Pixmap objMap = objectSprite.getTextureData().consumePixmap();
         for (WorldObject object : this.worldObjects) {
             int objPositionX = (int) object.getX();
             int objPositionY = (int) object.getY();
-            for (SpriteRelative rel : GameObject.get(object.id).getSprites()) {
-                for (int y = 0; y < 32; y++) {
-                    for (int x = 0; x < 32; x++) {
-                        int c = objMap.getPixel(x + (rel.getTextureId() % 20) * 32, y + (rel.getTextureId() / 20) * 32);
-                        Color color = new Color(c);
-                        if (color.a == 0) {
-                            continue;
-                        }
-                        newPix.drawPixel(x + objPositionX + rel.getxRelative(), (h * 32 * 32) - objPositionY + y - rel.getyRelative(), c
-                        );
+            for (int y = 0; y < objectSpriteRegion.getRegionHeight(); y++) {
+                for (int x = 0; x < objectSpriteRegion.getRegionWidth(); x++) {
+                    int c = objMap.getPixel(x + (rel.getTextureId() % 20) * 32, y + (rel.getTextureId() / 20) * 32);
+                    Color color = new Color(c);
+                    if (color.a == 0) {
+                        continue;
                     }
+                    newPix.drawPixel(x + objPositionX + rel.getxRelative(), (h * 32 * 32) - objPositionY + y - rel.getyRelative(), c
+                    );
                 }
             }
         }
@@ -398,7 +397,7 @@ public class WorldGenerator extends Thread {
         PixmapIO.writePNG(fileH, newPix);
         fileH.write(true);
     }
-
+     */
     public void saveWorld(String path) {
         for (Chunk chunk : chunkList) {
             Json json = new Json();
@@ -419,14 +418,14 @@ public class WorldGenerator extends Thread {
         for (int y = 0; y < h * 32; y++) {
             for (int x = 0; x < w * 32; x++) {
                 int c = tileMap.getPixel(tiles[y][x] * 32 + 32, 0);
-                previewImage.drawPixel(x, (h*32) - y + 1, c);
+                previewImage.drawPixel(x, (h * 32) - y + 1, c);
             }
         }
         this.previewImage = new Texture(previewImage);
     }
-    
+
     public Texture getPreview() {
-        if(this.previewImage == null) {
+        if (this.previewImage == null) {
             this.generatePreview();
         }
         return this.previewImage;

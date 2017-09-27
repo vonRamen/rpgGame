@@ -30,7 +30,11 @@ public class Chunk implements Runnable {
         return path;
     }
     private int x, y; //*32 *32
-    private int[][] tiles;
+    // z,y,x
+    // z=0: tiles
+    // z>0 objects
+    // this should increase performance as well as the need to sort
+    private int[][][] tilesAndObjects;
     private int[][] collisionGrid;
 
     private ArrayList<WorldObject> worldObjects;
@@ -45,7 +49,7 @@ public class Chunk implements Runnable {
         this.drawable = drawable;
         this.x = x;
         this.y = y;
-        tiles = new int[32][32];
+        tilesAndObjects = new int[8][32][32];
         worldObjects = new ArrayList();
         uId = UUID.randomUUID().toString();
     }
@@ -87,21 +91,50 @@ public class Chunk implements Runnable {
 
     public void draw() {
         Player p = this.world.getPlayer();
-        for (int yy = 0; yy < getTiles().length; yy++) {
-            for (int xx = 0; xx < getTiles().length; xx++) {
-                float distance = Vector2.dst(p.getX(), p.getY(), (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
-                if (distance < Game.settings.getViewDistance() && distance > Game.settings.getViewDistance() * 0.9) {
-                    float min = distance - Game.settings.getViewDistance() * 0.9f;
-                    float max = Game.settings.getViewDistance() - Game.settings.getViewDistance() * 0.9f;
-                    float closeness = min / max;
-                    Game.batch.setColor(1, 1, 1, 1 - closeness);
-                }
-                if (distance < Game.settings.getViewDistance()) {
-                    if (getTiles()[yy][xx] != -1) {
-                        Tile.get(getTiles()[yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+        for (int zz = 0; zz < getTilesAndObjects().length; zz++) {
+            for (int yy = 0; yy < getTilesAndObjects()[1].length; yy++) {
+                for (int xx = 0; xx < getTilesAndObjects()[2][1].length; xx++) {
+                    float distance = Vector2.dst(p.getX(), p.getY(), (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                    if (distance < Game.settings.getViewDistance() && distance > Game.settings.getViewDistance() * 0.9) {
+                        float min = distance - Game.settings.getViewDistance() * 0.9f;
+                        float max = Game.settings.getViewDistance() - Game.settings.getViewDistance() * 0.9f;
+                        float closeness = min / max;
+                        Game.batch.setColor(1, 1, 1, 1 - closeness);
                     }
+                    if (distance < Game.settings.getViewDistance()) {
+                        if (getTilesAndObjects()[zz][yy][xx] != -1 && zz == 0) {
+                            Tile.get(getTilesAndObjects()[zz][yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                        } else if (getTilesAndObjects()[zz][yy][xx] != -1 && zz > 0) {
+                            
+                        }
+                    }
+                    Game.batch.setColor(1, 1, 1, 1);
                 }
-                Game.batch.setColor(1, 1, 1, 1);
+            }
+        }
+    }
+    
+    public void drawObjectLights() {
+        Player p = this.world.getPlayer();
+        for (int zz = 0; zz < getTilesAndObjects().length; zz++) {
+            for (int yy = 0; yy < getTilesAndObjects()[1].length; yy++) {
+                for (int xx = 0; xx < getTilesAndObjects()[2][1].length; xx++) {
+                    float distance = Vector2.dst(p.getX(), p.getY(), (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                    if (distance < Game.settings.getViewDistance() && distance > Game.settings.getViewDistance() * 0.9) {
+                        float min = distance - Game.settings.getViewDistance() * 0.9f;
+                        float max = Game.settings.getViewDistance() - Game.settings.getViewDistance() * 0.9f;
+                        float closeness = min / max;
+                        Game.batch.setColor(1, 1, 1, 1 - closeness);
+                    }
+                    if (distance < Game.settings.getViewDistance()) {
+                        if (getTilesAndObjects()[zz][yy][xx] != -1 && zz == 0) {
+                            Tile.get(getTilesAndObjects()[zz][yy][xx]).draw((float) deltaTime, (getX() * 32 * 32) + xx * 32, (getY() * 32 * 32) + yy * 32);
+                        } else if (getTilesAndObjects()[zz][yy][xx] != -1 && zz > 0) {
+                            
+                        }
+                    }
+                    Game.batch.setColor(1, 1, 1, 1);
+                }
             }
         }
     }
@@ -136,7 +169,7 @@ public class Chunk implements Runnable {
     public void fillTile(int tile_id) {
         for (int iy = 0; iy < 32; iy++) {
             for (int ix = 0; ix < 32; ix++) {
-                this.tiles[iy][ix] = tile_id;
+                this.tilesAndObjects[0][iy][ix] = tile_id;
             }
         }
     }
@@ -145,12 +178,12 @@ public class Chunk implements Runnable {
         this.controlledClient = uId;
     }
 
-    public void setTiles(int[][] tiles) {
-        this.tiles = tiles;
+    public void setTilesAndObjects(int[][][] tiles) {
+        this.tilesAndObjects = tiles;
     }
 
-    public int[][] getTiles() {
-        return tiles;
+    public int[][][] getTilesAndObjects() {
+        return tilesAndObjects;
     }
 
     public String getClientControlling() {

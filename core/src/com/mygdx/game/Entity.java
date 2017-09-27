@@ -17,6 +17,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.UUID;
 
@@ -316,7 +317,7 @@ public abstract class Entity implements Drawable, Cloneable {
         animationDirection = dir;
         switch (state) {
             case WALKING:
-                animation = AnimationGroup.getAnimation(animationName).getDirectionalAnimation(dir);
+                animation = Game.objectManager.getAnimationsObjects("HumanManAnimationGroup", "male_01.png", dir);
                 break;
 
             case SWIMMING:
@@ -347,12 +348,6 @@ public abstract class Entity implements Drawable, Cloneable {
     @Override
     public void draw() {
         if (animation != null) {
-            float shadowAlpha = 0.4f - (1 - this.alpha);
-            if (shadowAlpha < 0) {
-                shadowAlpha = 0;
-            }
-            Game.batch.setColor(0, 0, 0, shadowAlpha);
-            Game.batch.draw(currentFrame, x, y - 4);
             Game.batch.setColor(1, 1, 1, this.alpha);
             Game.batch.draw(currentFrame, x, y + z);
         }
@@ -490,7 +485,7 @@ public abstract class Entity implements Drawable, Cloneable {
             return -1;
         }
 
-        return currentChunk.getTiles()[tileY][tileX];
+        return currentChunk.getTilesAndObjects()[0][tileY][tileX];
     }
 
     @Override
@@ -636,10 +631,41 @@ public abstract class Entity implements Drawable, Cloneable {
         fixture.restitution = 0.6f;
 
         body.createFixture(fixture);
-        body.setLinearDamping(4f);
+        body.setLinearDamping(8f);
 
         this.body = body;
 
         circle.dispose();
     }
+
+    @Override
+    public void drawShadow() {
+        if (animation != null) {
+            Game.batch.draw(currentFrame, x, y - 4);
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Entity)) {
+            return false;
+        }
+        return obj.hashCode() == this.hashCode(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.uId);
+        return hash;
+    }
+
+    /**
+     * @param uId the uId to set
+     */
+    public void setuId(String uId) {
+        this.uId = uId;
+    }
+    
+    
 }

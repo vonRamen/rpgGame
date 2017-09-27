@@ -7,33 +7,25 @@ package Persistence;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.Game;
 import com.mygdx.game.KJson;
-import com.mygdx.game.SpriteRelative;
+import com.mygdx.game.Light;
 import com.mygdx.game.WorldObject;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.TreeMap;
-import javafx.scene.effect.Blend;
 
 /**
  *
  * @author kristian
  */
-public class GameObject implements ReportCreatable {
+public class GameObject extends PersistenceFile implements ReportCreatable {
 
     private static TreeMap<Integer, GameObject> gameObjects = new TreeMap();
     private static TreeMap<Integer, GameObject> ghostObjects = new TreeMap();
-    private static ArrayList<TextureRegion> objectSprites = new ArrayList();
-    private static ArrayList<TextureRegion> objectSilhuetes = new ArrayList();
     private static String path = "objects/";
     private static final KJson JSONHANDLER = new KJson();
 
@@ -45,62 +37,65 @@ public class GameObject implements ReportCreatable {
     }
 
     /**
-     * @return the objectSprites
-     */
-    public static ArrayList<TextureRegion> getObjectSprites() {
-        return objectSprites;
-    }
-
-    /**
      * @return the path
      */
     public static String getPath() {
         return path;
     }
-    private ArrayList<SpriteRelative> sprites;
+    protected TextureRegion sprite;
+    protected TextureRegion ghostSprite;
+    protected TextureRegion drawLessSprite; // to hide walls and etc.
     protected String name;
     protected String description;
-    private float respawnTime;
+    protected float respawnTime;
     protected boolean isRespawnObject;
     protected int isRespawningInto;
     protected int id;
     protected Rectangle rectangle;
     protected ArrayList<Action> actions;
     protected String fileName;
+    protected int offsetX, offsetY;
+    protected ArrayList<Light> lights;
+    protected TextureRegionDrawable spriteIcon;
 
-    private float zIndex = 0;
+    protected float zIndex = 0;
 
     //If the object is created through building stuff, then
     //create a ghost object
-    private boolean isBuilt;
-    private boolean hideWhenNear;
-    private boolean isGhostObject;
-    private int requiredConstructionLevel;
+    protected boolean isBuilt;
+    protected boolean hideWhenNear;
+    protected boolean isGhostObject;
+    protected int requiredConstructionLevel;
     protected ArrayList<DropItem> itemsRequired;
+    private ObjectType objectType;
 
     public GameObject(String name) {
         this.name = name;
-        sprites = new ArrayList();
         id = GameObject.gameObjects.size();
     }
 
     public GameObject() {
-        sprites = new ArrayList();
+        this.name = "unnamed";
         id = GameObject.gameObjects.size();
+        this.actions = new ArrayList();
+        this.setObjectType(ObjectType.UNSPECIFIED);
+        uniqueInitialization();
     }
 
-    protected void uniqueInitialization() {
+    private void uniqueInitialization() {
         rectangle = new Rectangle(0, 0, 32, 32);
     }
 
-    private void generateGhostObject() {
+    final protected void makeBuildAbleObject() {
         GameObject ghostObject = new GameObject(this.name);
         ghostObject.itemsRequired = this.itemsRequired;
-        ghostObject.sprites = this.getSprites();
+        ghostObject.sprite = this.sprite;
         ghostObject.zIndex = this.zIndex;
         ghostObject.description = "A 'ghost' structure. It doesn't exist, but the concept is there!";
-        ghostObject.id = GameObject.gameObjects.size();
         ghostObject.isGhostObject = true;
+        ghostObject.id = this.id + 1000;
+        ghostObject.setObjectType(this.getObjectType());
+        ghostObject.spriteIcon = this.spriteIcon;
 
         //Generate actions!
         Action build = new Action();
@@ -122,7 +117,7 @@ public class GameObject implements ReportCreatable {
         ghostObject.actions.add(remove);
 
         GameObject.ghostObjects.put(ghostObject.id, ghostObject);
-        GameObject.gameObjects.put(ghostObject.id, ghostObject);
+        Game.objectManager.addAdditionalGameObject(ghostObject.id, ghostObject);
     }
 
     public static void load() {
@@ -138,74 +133,9 @@ public class GameObject implements ReportCreatable {
         //generate ghost objects:
         for (GameObject object : new Utility.KUtility<GameObject>().getArrayListOfMap(gameObjects)) {
             if (object.isBuilt) {
-                object.generateGhostObject();
+                object.makeBuildAbleObject();
             }
         }
-    }
-
-    public static void loadObjects() {
-        Texture texture = new Texture(getPath() + "standard tileset.png");
-        int xx = (int) (texture.getWidth() / 32);
-        int yy = (int) (texture.getHeight() / 32);
-
-        int count = 0;
-        for (int iy = 0; iy < yy; iy++) {
-            for (int ix = 0; ix < xx; ix++) {
-                TextureRegion txt = new TextureRegion(texture, ix * 32, iy * 32, 32, 32);
-
-                //create silhuetes
-                txt.getTexture().getTextureData().prepare();
-                Pixmap full = txt.getTexture().getTextureData().consumePixmap();
-                Pixmap area = new Pixmap(32, 32, Pixmap.Format.RGB888);
-                for (int yPixel = 0; yPixel < 32; yPixel++) {
-                    for (int xPixel = 0; xPixel < 32; xPixel++) {
-                        int pixel = full.getPixel(xPixel + ix * 32, yPixel + iy * 32);
-                        if (pixel != 0) {
-                            Color color = new Color(pixel);
-                            float colorStrength = (color.r + color.g + color.b) / 3 + 0.7f;
-                            if (colorStrength > 1) {
-                                colorStrength = 1;
-                            }
-                            Color newColor = new Color(colorStrength, colorStrength, colorStrength, colorStrength);
-                            area.drawPixel(xPixel, yPixel, newColor.toIntBits());
-                        }
-                    }
-                }
-
-                TextureRegion txtWhite = new TextureRegion(new Texture(area));
-                objectSprites.add(txt);
-                objectSilhuetes.add(txtWhite);
-            }
-        }
-        load();
-    }
-
-    public static File getFileOfObject(int id) {
-        TextureRegion textureRegion = objectSprites.get(id);
-        Texture texture = textureRegion.getTexture();
-        if (!texture.getTextureData().isPrepared()) {
-            texture.getTextureData().prepare();
-        }
-
-        Pixmap pixmap = texture.getTextureData().consumePixmap();
-        Pixmap pixToDraw = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        System.out.println("Here");
-        for (int x = 0; x < textureRegion.getRegionWidth(); x++) {
-            for (int y = 0; y < textureRegion.getRegionHeight(); y++) {
-                int colorInt = pixmap.getPixel(textureRegion.getRegionX() + x, textureRegion.getRegionY() + y);
-                pixToDraw.setColor(colorInt);
-                pixToDraw.drawPixel(x, y);
-                // you could now draw that color at (x, y) of another pixmap of the size (regionWidth, regionHeight)
-            }
-        }
-        FileHandle fileH = Gdx.files.local("temp.png");
-        PixmapIO.writePNG(fileH, pixToDraw);
-        fileH.write(true);
-        return fileH.file();
-    }
-
-    public static TextureRegion getSprite(int id) {
-        return getObjectSprites().get(id);
     }
 
     /**
@@ -218,39 +148,24 @@ public class GameObject implements ReportCreatable {
         if (this.hideWhenNear == false) {
             drawLess = false;
         }
-        ArrayList<TextureRegion> listToChoose;
-        if (isGhostObject) {
-            listToChoose = objectSilhuetes;
-        } else {
-            listToChoose = objectSprites;
-        }
-        if (!drawLess) {
-            for (SpriteRelative sprites : getSprites()) {
-                //draw the actual sprites
-                Game.batch.draw(listToChoose.get(sprites.getTextureId()), x + sprites.getxRelative(), y + sprites.getyRelative());
-            }
-        }
-        if (drawLess) {
-            if (zIndex == 0) {
-                Game.batch.draw(listToChoose.get(getSprites().get(0).getTextureId()), x, y);
-            }
-            if (zIndex == 5) {
+        TextureRegion spriteToUse;
 
-            }
+        if (drawLess && drawLessSprite != null) {
+            spriteToUse = drawLessSprite;
+        } else {
+            spriteToUse = this.sprite;
         }
+
+        Game.batch.draw(spriteToUse, x + offsetX, y + offsetY);
     }
-    
+
     public void drawShadow(int x, int y, boolean drawLess) {
         if (!drawLess) {
-            for (SpriteRelative spriteShadow : getSprites()) {
-                //draw shadows.
-                if (zIndex != -1 && !isGhostObject) {
-                    Game.batch.setColor(0, 0, 0, 1);
-                    Game.batch.draw(objectSprites.get(spriteShadow.getTextureId()), x + spriteShadow.getxRelative(), y + 10 - spriteShadow.getyRelative(), 0, 0, objectSprites.get(spriteShadow.getTextureId()).getRegionWidth(), objectSprites.get(spriteShadow.getTextureId()).getRegionHeight(), 1, -1, 0);
-                    Game.batch.setColor(Color.WHITE);
-                }
+            if (zIndex != -1 && !isGhostObject) {
+                Game.batch.draw(sprite, x + offsetX, y + 10 - offsetY, 0, 0, sprite.getRegionWidth(), sprite.getRegionHeight(), 1, -1, 0);
             }
         }
+
     }
 
     public void update(WorldObject object, double deltaTime) {
@@ -277,10 +192,6 @@ public class GameObject implements ReportCreatable {
      */
     public int getId() {
         return id;
-    }
-
-    public static GameObject get(int id) {
-        return gameObjects.get(id);
     }
 
     public Rectangle getBounds() {
@@ -331,19 +242,57 @@ public class GameObject implements ReportCreatable {
 
     public static ArrayList<GameObject> getAllGhostObjects() {
         ArrayList<GameObject> returnList = new ArrayList();
-        for (GameObject gameObject : new Utility.KUtility<GameObject>().getArrayListOfMap(gameObjects)) {
-            if (gameObject.isGhostObject) {
-                returnList.add(gameObject);
-            }
+        for (GameObject gameObject : new Utility.KUtility<GameObject>().getArrayListOfMap(ghostObjects)) {
+            returnList.add(gameObject);
         }
 
         return returnList;
     }
 
+    public TextureRegion getSprite() {
+        return sprite;
+    }
+
+    public void drawLights(int x, int y) {
+        if (this.lights != null) {
+            for (Light light : this.lights) {
+                light.draw(x, y);
+            }
+        }
+    }
+
+    public void addLight(Light newLight) {
+        if (this.lights == null) {
+            this.lights = new ArrayList();
+        }
+        this.lights.add(newLight);
+    }
+
     /**
-     * @return the sprites
+     * @return the objectType
      */
-    public ArrayList<SpriteRelative> getSprites() {
-        return sprites;
+    public ObjectType getObjectType() {
+        if (objectType == null) {
+            return ObjectType.UNSPECIFIED;
+        }
+        return objectType;
+    }
+
+    /**
+     * @param objectType the objectType to set
+     */
+    public void setObjectType(ObjectType objectType) {
+        this.objectType = objectType;
+    }
+
+    public enum ObjectType {
+        FLOOR, DOOR, WALL, ROOF, FURNITURE, NATURE, UNSPECIFIED;
+    }
+
+    /**
+     * @return the spriteIcon
+     */
+    public TextureRegionDrawable getSpriteIcon() {
+        return spriteIcon;
     }
 }

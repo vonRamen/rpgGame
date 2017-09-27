@@ -69,7 +69,7 @@ public class Player extends Human {
         player.inventory = new Inventory(28);
         player.addSkills();
         player.path = path;
-        player.uId = UUID.randomUUID().toString();
+        player.setuId(UUID.randomUUID().toString());
         FileHandle fileHandle = new FileHandle(path + userName + ".json");
 
         Json json = new Json();
